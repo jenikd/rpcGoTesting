@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"rpctesting/chain"
 	"rpctesting/types"
 
 	"gopkg.in/yaml.v3"
@@ -29,6 +30,25 @@ func main() {
 	tstJson, _ := json.MarshalIndent(testConfig, "", " ")
 
 	fmt.Println(string(tstJson))
+
+	// fmt.Println("Deploying contracts...")
+	// var contracts []types.DeployedContract
+	// for _, test := range testConfig {
+	// 	contracts, err = chain.DeployContracts(context.Background(), test.Deploy)
+	// 	if err != nil {
+	// 		fmt.Printf("Failed to deploy contracts: %s\n", err)
+	// 	}
+	// }
+	// fmt.Printf("deployed %v contracts", len(contracts))
+
+	fmt.Println("Calling contracts...")
+
+	fmt.Println("Running tests...")
+
+	err = chain.Call()
+	if err != nil {
+		fmt.Printf("Failed to call contracts: %s\n", err)
+	}
 
 }
 

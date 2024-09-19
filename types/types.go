@@ -1,5 +1,7 @@
 package types
 
+import "github.com/ethereum/go-ethereum/common"
+
 type TestConfig struct {
 	Deploy []DeployConfig   `yaml:"deploy"`
 	Call   []CallConfig     `yaml:"contract_call"`
@@ -25,4 +27,10 @@ type TestCallConfig struct {
 	CallID     int    `yaml:"call_id,omitempty"`
 	MethodName string `yaml:"method_name"`
 	Arguments  []any  `yaml:"arguments"`
+}
+
+type DeployedContract struct {
+	ContractID int
+	ABI        string
+	Address    common.Address
 }
