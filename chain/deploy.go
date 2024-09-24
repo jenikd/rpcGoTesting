@@ -6,112 +6,112 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math/big"
+	"rpctesting/config"
 	t "rpctesting/types"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
-const (
-	PROVIDER    = "http://localhost:8545"
-	PRIVATE_KEY = "0x67b1d87101671b127f5f8714789C7192f7ad340e"
-	CHAIN_ID    = 4003
-)
+func DeployContracts(ctx context.Context, signer *bind.TransactOpts, clientConfig *config.ClientConfig, deployConfig []t.DeployConfig) ([]*t.DeployedContract, error) {
 
-func DeployContracts(ctx context.Context, deployConfig []t.DeployConfig) ([]t.DeployedContract, error) {
+	deployedContracts := make([]*t.DeployedContract, len(deployConfig))
 
-	// chainId := big.NewInt(4003)
-	// privateKey, err := getPrivateKey(PRIVATE_KEY)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// deployer, err := bind.NewKeyedTransactorWithChainID(privateKey, chainId)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	deployer2 := &bind.TransactOpts{
-		From:     common.HexToAddress("0x239fA7623354eC26520dE878B52f13Fe84b06971"),
-		Signer:   nil,
-		GasLimit: 1000000,
-
-		// Nonce:    nil,
-		// GasPrice: nil,
-		// NoSend:   false,
-		// ChainID:  big.NewInt(CHAIN_ID),
-		// Value:    big.NewInt(0),
+	client, err := getClient(clientConfig.ProviderUrl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ethClient: %s", err)
 	}
-
-	deployedContracts := make([]t.DeployedContract, len(deployConfig))
+	defer client.Close()
 
 	for i, deploy := range deployConfig {
-		fmt.Printf("Deploying contract %d\n", deploy.ContractID)
+		log.Printf("Deploying contract %d\n", deploy.ContractID)
 
-		client, err := getClient(PROVIDER)
+		deployedContract, err := deployContract(ctx, client, deploy.ContractID, deploy.ABI, deploy.Bytecode, signer)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to deploy contract id: %d,  %s", deploy.ContractID, err)
 		}
 
-		address, err := deployContract(ctx, client, deploy.ABI, deploy.Bytecode, deployer2)
-		if err != nil {
-			return nil, err
-		}
-		deployedContracts[i] = t.DeployedContract{
-			ContractID: deploy.ContractID,
-			ABI:        deploy.ABI,
-			Address:    address,
-		}
+		deployedContracts[i] = deployedContract
 	}
 
 	return deployedContracts, nil
 }
 
-func deployContract(ctx context.Context, client *ethclient.Client, contractABI string, contractBin string, deployer *bind.TransactOpts) (common.Address, error) {
+func GetSigner(ctx context.Context, clientConfig *config.ClientConfig) (*bind.TransactOpts, error) {
+	privateKey, err := getPrivateKey(clientConfig.Pk)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get private key: %s", err)
+	}
+
+	client, err := rpc.Dial(clientConfig.ProviderUrl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to rpc provider: %s", err)
+	}
+	defer client.Close()
+
+	chainIdString, err := getChainId(ctx, client)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get chain id: %s", err)
+	}
+
+	chainId, err := hexutil.DecodeBig(chainIdString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode chain id: %s", err)
+	}
+
+	deployer, err := bind.NewKeyedTransactorWithChainID(privateKey, chainId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create deployer: %s", err)
+	}
+
+	deployer.GasLimit = uint64(clientConfig.GasLimit)
+
+	return deployer, nil
+}
+
+func deployContract(ctx context.Context, client *ethclient.Client, id int, contractABI string, contractBin string, deployer *bind.TransactOpts) (*t.DeployedContract, error) {
 	// Unmarshal the contract ABI
 	var abi abi.ABI
 	if err := json.Unmarshal([]byte(contractABI), &abi); err != nil {
-		return common.Address{}, err
+		return nil, fmt.Errorf("failed to unmarshal contract ABI: %s", err)
 	}
 
-	auth, err := bind.NewKeyedTransactorWithChainID(&ecdsa.PrivateKey{}, big.NewInt(4003))
+	bytecode, err := hexutil.Decode(contractBin)
 	if err != nil {
-		return common.Address{}, err
+		return nil, fmt.Errorf("failed to decode contract bytecode: %s", err)
 	}
-	auth.From = common.HexToAddress("0x239fA7623354eC26520dE878B52f13Fe84b06971")
 
 	// Create a new instance of the contract
-	//contractAddr, tx, _, err := bind.DeployContract(deployer, abi, []byte(contractBin), client)
-	contractAddr, tx, _, err := bind.DeployContract(auth, abi, []byte(contractBin), client)
+	_, tx, _, err := bind.DeployContract(deployer, abi, bytecode, client)
 	if err != nil {
-		return common.Address{}, err
+		return nil, err
 	}
 
-	// Wait for the transaction to be mined
 	txHash := tx.Hash()
-	fmt.Printf("Contract deployed to address: %s, transaction hash: %s\n", contractAddr.Hex(), txHash.Hex())
 
 	// Wait for the transaction to be mined
-	receipt, err := bind.WaitMined(ctx, client, tx)
+	contractAddress, err := bind.WaitDeployed(ctx, client, tx)
 	if err != nil {
-		return common.Address{}, err
+		return nil, fmt.Errorf("failed to get deployed contract address: %s", err)
 	}
 
-	if receipt.Status != types.ReceiptStatusSuccessful {
-		return common.Address{}, fmt.Errorf("contract deployment failed with status %v", receipt.Status)
-	}
-
-	return contractAddr, nil
+	return &t.DeployedContract{
+		ContractID: id,
+		ABI:        contractABI,
+		Address:    contractAddress,
+		TxHash:     txHash,
+	}, nil
 }
 
 func Call() error {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 	rpcURL := "http://localhost:8545"
 
 	client, err := rpc.Dial(rpcURL)

@@ -16,12 +16,15 @@ import (
 
 func getChainId(ctx context.Context, client *rpc.Client) (string, error) {
 	var result string
-	err := client.CallContext(context.Background(), &result, "eth_chainId")
+	err := client.CallContext(ctx, &result, "eth_chainId")
 	if err != nil {
 		return "", err
 	}
 
 	chainidInt, err := hexutil.DecodeUint64(result)
+	if err != nil {
+		return "", err
+	}
 	log.Printf("chain id: %s, decoded cahin id: %d", result, chainidInt)
 
 	return result, nil
@@ -105,7 +108,7 @@ func getTxByHash(ctx context.Context, client *rpc.Client, args []interface{}) (s
 
 func rpcCall(ctx context.Context, client *rpc.Client, method string, args []interface{}, result interface{}) error {
 
-	err := client.CallContext(context.Background(), &result, method, args...)
+	err := client.CallContext(ctx, &result, method, args...)
 	if err != nil {
 		return err
 	}

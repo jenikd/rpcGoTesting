@@ -1,21 +1,28 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
-	"fmt"
+	"log"
 	"os"
 	"rpctesting/chain"
+	"rpctesting/config"
 	"rpctesting/types"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
 
 func main() {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
 	// Define flags
 	testDir := flag.String("testDirectory", "./testfiles", "a directory, where test config files are located")
 	if testDir == nil {
-		fmt.Println("testDirectory is required")
+		log.Println("testDirectory is required")
 		return
 	}
 
@@ -24,32 +31,46 @@ func main() {
 
 	testConfig, err := loadAllConfigs(*testDir)
 	if err != nil {
-		fmt.Printf("Failed to load test configs: %s\n", err)
+		log.Printf("Failed to load test configs: %s\n", err)
 	}
 
 	tstJson, _ := json.MarshalIndent(testConfig, "", " ")
+	log.Println(string(tstJson))
 
-	fmt.Println(string(tstJson))
+	clientConfig, err := config.GetClientConfig()
+	if err != nil {
+		log.Printf("Failed to get client config: %s\n", err)
+		return
+	}
 
-	// fmt.Println("Deploying contracts...")
-	// var contracts []types.DeployedContract
-	// for _, test := range testConfig {
-	// 	contracts, err = chain.DeployContracts(context.Background(), test.Deploy)
-	// 	if err != nil {
-	// 		fmt.Printf("Failed to deploy contracts: %s\n", err)
-	// 	}
-	// }
-	// fmt.Printf("deployed %v contracts", len(contracts))
+	signer, err := chain.GetSigner(ctx, clientConfig)
+	if err != nil {
+		log.Printf("Failed to get signer: %s\n", err)
+		return
+	}
 
-	fmt.Println("Calling contracts...")
+	log.Println("Deploying contracts...")
+	var contracts []*types.DeployedContract
+	for _, test := range testConfig {
+		contracts, err = chain.DeployContracts(ctx, signer, clientConfig, test.Deploy)
+		if err != nil {
+			log.Printf("Failed to deploy contracts: %s\n", err)
+			return
+		}
+	}
+	log.Printf("deployed %v contracts", len(contracts))
 
-	fmt.Println("Running tests...")
+	c, _ := json.MarshalIndent(contracts, "", " ")
+	log.Println("New contracts:", string(c))
+
+	log.Println("Calling contracts...")
+
+	log.Println("Running tests...")
 
 	err = chain.Call()
 	if err != nil {
-		fmt.Printf("Failed to call contracts: %s\n", err)
+		log.Printf("Failed to call contracts: %s\n", err)
 	}
-
 }
 
 func loadAllConfigs(testDir string) (map[string]types.TestConfig, error) {
@@ -62,7 +83,6 @@ func loadAllConfigs(testDir string) (map[string]types.TestConfig, error) {
 	for _, file := range files {
 		if !file.IsDir() {
 			name := file.Name()
-			fmt.Println("file name: ", name)
 			data, err := os.ReadFile(testDir + "/" + name)
 			if err != nil {
 				return nil, err
