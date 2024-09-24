@@ -33,4 +33,5 @@ type DeployedContract struct {
 	ContractID int
 	ABI        string
 	Address    common.Address
+	TxHash     common.Hash
 }
