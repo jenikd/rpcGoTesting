@@ -9,6 +9,7 @@ import (
 	"rpctesting/chain"
 	"rpctesting/config"
 	"rpctesting/types"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -29,12 +30,12 @@ func main() {
 	// Parse flags
 	flag.Parse()
 
-	testConfig, err := loadAllConfigs(*testDir)
+	testConfigFileMap, err := loadAllConfigs(*testDir)
 	if err != nil {
 		log.Printf("Failed to load test configs: %s\n", err)
 	}
 
-	tstJson, _ := json.MarshalIndent(testConfig, "", " ")
+	tstJson, _ := json.MarshalIndent(testConfigFileMap, "", " ")
 	log.Println(string(tstJson))
 
 	clientConfig, err := config.GetClientConfig()
@@ -51,21 +52,22 @@ func main() {
 
 	log.Println("Deploying contracts...")
 	var contracts []*types.DeployedContract
-	for _, test := range testConfig {
+	for _, test := range testConfigFileMap {
 		contracts, err = chain.DeployContracts(ctx, signer, clientConfig, test.Deploy)
 		if err != nil {
 			log.Printf("Failed to deploy contracts: %s\n", err)
 			return
 		}
+
+		log.Printf("deployed %v contracts", len(contracts))
+
+		c, _ := json.MarshalIndent(contracts, "", " ")
+		log.Println("New contracts:", string(c))
+
+		log.Println("Calling contracts...")
+
+		log.Println("Running tests...")
 	}
-	log.Printf("deployed %v contracts", len(contracts))
-
-	c, _ := json.MarshalIndent(contracts, "", " ")
-	log.Println("New contracts:", string(c))
-
-	log.Println("Calling contracts...")
-
-	log.Println("Running tests...")
 
 	err = chain.Call()
 	if err != nil {
@@ -83,6 +85,9 @@ func loadAllConfigs(testDir string) (map[string]types.TestConfig, error) {
 	for _, file := range files {
 		if !file.IsDir() {
 			name := file.Name()
+			if !strings.HasSuffix(name, ".yaml") {
+				continue
+			}
 			data, err := os.ReadFile(testDir + "/" + name)
 			if err != nil {
 				return nil, err
