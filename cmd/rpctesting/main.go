@@ -50,10 +50,16 @@ func main() {
 		return
 	}
 
+	client, err := chain.GetClient(clientConfig.ProviderUrl)
+	if err != nil {
+		log.Printf("Failed to get ethClient: %s", err)
+	}
+	defer client.Close()
+
 	log.Println("Deploying contracts...")
 	var contracts []*types.DeployedContract
 	for _, test := range testConfigFileMap {
-		contracts, err = chain.DeployContracts(ctx, signer, clientConfig, test.Deploy)
+		contracts, err = chain.DeployContracts(ctx, client, signer, clientConfig, test.Deploy)
 		if err != nil {
 			log.Printf("Failed to deploy contracts: %s\n", err)
 			return
@@ -65,14 +71,19 @@ func main() {
 		log.Println("New contracts:", string(c))
 
 		log.Println("Calling contracts...")
+		_, err := chain.MakeCalls(ctx, signer, client, test.Call, contracts)
+		if err != nil {
+			log.Printf("Failed to call contracts: %s\n", err)
+			return
+		}
 
 		log.Println("Running tests...")
 	}
 
-	err = chain.Call()
-	if err != nil {
-		log.Printf("Failed to call contracts: %s\n", err)
-	}
+	// err = chain.Call()
+	// if err != nil {
+	// 	log.Printf("Failed to call contracts: %s\n", err)
+	// }
 }
 
 func loadAllConfigs(testDir string) (map[string]types.TestConfig, error) {

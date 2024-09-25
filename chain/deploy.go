@@ -19,15 +19,9 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
-func DeployContracts(ctx context.Context, signer *bind.TransactOpts, clientConfig *config.ClientConfig, deployConfig []t.DeployConfig) ([]*t.DeployedContract, error) {
+func DeployContracts(ctx context.Context, client *ethclient.Client, signer *bind.TransactOpts, clientConfig *config.ClientConfig, deployConfig []t.DeployConfig) ([]*t.DeployedContract, error) {
 
 	deployedContracts := make([]*t.DeployedContract, len(deployConfig))
-
-	client, err := getClient(clientConfig.ProviderUrl)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get ethClient: %s", err)
-	}
-	defer client.Close()
 
 	for i, deploy := range deployConfig {
 		log.Printf("Deploying contract %d\n", deploy.ContractID)
@@ -75,7 +69,7 @@ func GetSigner(ctx context.Context, clientConfig *config.ClientConfig) (*bind.Tr
 	return deployer, nil
 }
 
-func deployContract(ctx context.Context, client *ethclient.Client, id int, contractABI string, contractBin string, deployer *bind.TransactOpts) (*t.DeployedContract, error) {
+func deployContract(ctx context.Context, client *ethclient.Client, id int, contractABI string, contractBin string, signer *bind.TransactOpts) (*t.DeployedContract, error) {
 	// Unmarshal the contract ABI
 	var abi abi.ABI
 	if err := json.Unmarshal([]byte(contractABI), &abi); err != nil {
@@ -88,7 +82,7 @@ func deployContract(ctx context.Context, client *ethclient.Client, id int, contr
 	}
 
 	// Create a new instance of the contract
-	_, tx, _, err := bind.DeployContract(deployer, abi, bytecode, client)
+	_, tx, _, err := bind.DeployContract(signer, abi, bytecode, client)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +189,7 @@ func addressFromPrivateKey(privateKey *ecdsa.PrivateKey) (common.Address, error)
 	return address, nil
 }
 
-func getClient(provider string) (*ethclient.Client, error) {
+func GetClient(provider string) (*ethclient.Client, error) {
 
 	client, err := ethclient.Dial(provider)
 	if err != nil {
