@@ -35,3 +35,8 @@ type DeployedContract struct {
 	Address    common.Address
 	TxHash     common.Hash
 }
+
+type ExecutedCall struct {
+	CallID int
+	TxHash common.Hash
+}
