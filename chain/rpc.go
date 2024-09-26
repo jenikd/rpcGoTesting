@@ -19,17 +19,11 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
-func GetSigner(ctx context.Context, clientConfig *config.ClientConfig) (*bind.TransactOpts, error) {
+func GetSigner(ctx context.Context, clientConfig *config.ClientConfig, client *rpc.Client) (*bind.TransactOpts, error) {
 	privateKey, err := getPrivateKey(clientConfig.Pk)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get private key: %s", err)
 	}
-
-	client, err := rpc.Dial(clientConfig.ProviderUrl)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to rpc provider: %s", err)
-	}
-	defer client.Close()
 
 	chainIdString, err := getChainId(ctx, client)
 	if err != nil {

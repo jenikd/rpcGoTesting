@@ -44,17 +44,17 @@ func main() {
 		return
 	}
 
-	signer, err := chain.GetSigner(ctx, clientConfig)
-	if err != nil {
-		log.Printf("Failed to get signer: %s\n", err)
-		return
-	}
-
 	client, err := chain.GetClient(clientConfig.ProviderUrl)
 	if err != nil {
 		log.Printf("Failed to get ethClient: %s", err)
 	}
 	defer client.Close()
+
+	signer, err := chain.GetSigner(ctx, clientConfig, client.Client())
+	if err != nil {
+		log.Printf("Failed to get signer: %s\n", err)
+		return
+	}
 
 	log.Println("Deploying contracts...")
 	var contracts []*types.DeployedContract
