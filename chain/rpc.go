@@ -121,26 +121,43 @@ func Call() error {
 	return nil
 }
 
-func convertArguments(contractABI *abi.ABI, methodName string, arguments []any) ([]interface{}, error) {
+func convertArgumentsWithAbi(contractABI *abi.ABI, methodName string, arguments []any) ([]interface{}, error) {
 	// Convert arguments
 	method := contractABI.Methods[methodName]
 	args := make([]interface{}, len(method.Inputs))
 	for i, input := range method.Inputs {
-		switch input.Type.String() {
-		case "uint256":
-			args[i] = big.NewInt(int64(arguments[i].(int)))
-		case "string":
-			args[i] = arguments[i].(string)
-		case "bool":
-			args[i] = arguments[i].(bool)
-		case "address":
-			args[i] = common.HexToAddress(arguments[i].(string))
-			// Add more cases as needed for other types
-		default:
-			return nil, fmt.Errorf("unsupported type: %s", input.Type.String())
+
+		arg, err := convertArgument(input.Type.String(), arguments[i])
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert argument: %s, %s", arguments[i], err)
 		}
+		args[i] = arg
 	}
 	return args, nil
+}
+
+func convertArgument(input string, argument interface{}) (arg interface{}, err error) {
+
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("%v", r)
+		}
+	}()
+
+	switch input {
+	case "uint256":
+		arg = big.NewInt(int64(argument.(int)))
+	case "string":
+		arg = argument.(string)
+	case "bool":
+		arg = argument.(bool)
+	case "address":
+		arg = common.HexToAddress(argument.(string))
+
+	default:
+		return nil, fmt.Errorf("unsupported type: %s", input)
+	}
+	return arg, nil
 }
 
 func makeSimpleCall(ctx context.Context, client *ethclient.Client, methodName string, arguments []any) (map[string]interface{}, error) {

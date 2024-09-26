@@ -42,7 +42,7 @@ func makeContractCall(ctx context.Context, client *ethclient.Client, call *t.Cal
 		return nil, fmt.Errorf("failed to unmarshal contract ABI: %s", err)
 	}
 
-	args, err := convertArguments(&decodedAbi, call.MethodName, call.Arguments)
+	args, err := convertArgumentsWithAbi(&decodedAbi, call.MethodName, call.Arguments)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert arguments: %s", err)
 	}
