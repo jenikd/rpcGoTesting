@@ -59,7 +59,7 @@ func main() {
 	log.Println("Deploying contracts...")
 	var contracts []*types.DeployedContract
 	for _, test := range testConfigFileMap {
-		contracts, err = chain.DeployContracts(ctx, client, signer, clientConfig, test.Deploy)
+		contracts, err = chain.DeployContracts(ctx, client, signer, test.Deploy)
 		if err != nil {
 			log.Printf("Failed to deploy contracts: %s\n", err)
 			return

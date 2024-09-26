@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"rpctesting/config"
 	t "rpctesting/types"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -14,7 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func DeployContracts(ctx context.Context, client *ethclient.Client, signer *bind.TransactOpts, clientConfig *config.ClientConfig, deployConfig []t.DeployConfig) ([]*t.DeployedContract, error) {
+func DeployContracts(ctx context.Context, client *ethclient.Client, signer *bind.TransactOpts, deployConfig []t.DeployConfig) ([]*t.DeployedContract, error) {
 
 	deployedContracts := make([]*t.DeployedContract, len(deployConfig))
 

@@ -11,7 +11,6 @@ import (
 
 type ClientConfig struct {
 	ProviderUrl string
-	Account     string
 	Pk          string
 	GasLimit    uint64
 }
@@ -31,7 +30,6 @@ func GetClientConfig() (*ClientConfig, error) {
 
 	return &ClientConfig{
 		ProviderUrl: os.Getenv("PROVIDER_URL"),
-		Account:     os.Getenv("ACCOUNT"),
 		Pk:          os.Getenv("PK"),
 		GasLimit:    gasLimit,
 	}, nil
