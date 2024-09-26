@@ -13,11 +13,11 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func MakeContractCalls(ctx context.Context, signer *bind.TransactOpts, client *ethclient.Client, callConfig []t.CallConfig, contracts []*t.DeployedContract) ([]*t.ExecutedCall, error) {
+func MakeContractCalls(ctx context.Context, signer *bind.TransactOpts, client *ethclient.Client, callConfig []t.CallConfig, contracts map[int]*t.DeployedContract) (map[int]*t.ExecutedCall, error) {
 
-	executedCalls := make([]*t.ExecutedCall, len(callConfig))
+	executedCalls := map[int]*t.ExecutedCall{}
 
-	for i, call := range callConfig {
+	for _, call := range callConfig {
 
 		if call.ContractID >= 0 {
 
@@ -28,7 +28,7 @@ func MakeContractCalls(ctx context.Context, signer *bind.TransactOpts, client *e
 				return nil, fmt.Errorf("failed to call contract id: %d,  %s", call.ContractID, err)
 			}
 
-			executedCalls[i] = executedCall
+			executedCalls[call.ContractID] = executedCall
 		}
 	}
 	return executedCalls, nil
@@ -42,7 +42,7 @@ func makeContractCall(ctx context.Context, client *ethclient.Client, call *t.Cal
 		return nil, fmt.Errorf("failed to unmarshal contract ABI: %s", err)
 	}
 
-	args, err := convertArgumentsWithAbi(&decodedAbi, call.MethodName, call.Arguments)
+	args, err := ConvertArgumentsWithAbi(&decodedAbi, call.MethodName, call.Arguments)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert arguments: %s", err)
 	}
@@ -71,7 +71,7 @@ func makeContractCall(ctx context.Context, client *ethclient.Client, call *t.Cal
 	}
 
 	return &t.ExecutedCall{
-		CallID: call.CallID,
-		TxHash: txReceipt.TxHash,
+		CallID:    call.CallID,
+		TxReceipt: txReceipt,
 	}, nil
 }

@@ -8,12 +8,14 @@ import (
 	"log"
 	"math/big"
 	"rpctesting/config"
+	"strings"
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -121,7 +123,7 @@ func Call() error {
 	return nil
 }
 
-func convertArgumentsWithAbi(contractABI *abi.ABI, methodName string, arguments []any) ([]interface{}, error) {
+func ConvertArgumentsWithAbi(contractABI *abi.ABI, methodName string, arguments []any) ([]interface{}, error) {
 	// Convert arguments
 	method := contractABI.Methods[methodName]
 	args := make([]interface{}, len(method.Inputs))
@@ -134,6 +136,30 @@ func convertArgumentsWithAbi(contractABI *abi.ABI, methodName string, arguments 
 		args[i] = arg
 	}
 	return args, nil
+}
+
+func ConvertArgumentsWithTXReceipt(arguments []interface{}, txReceipt *types.Receipt) error {
+
+	//args := make([]interface{}, len(arguments))
+	for i, arg := range arguments {
+		switch v := arg.(type) {
+		case int:
+			fmt.Printf("Integer: %d\n", v)
+		case string:
+			switch {
+			case strings.Contains(arg.(string), "tx.hash"):
+				arguments[i] = txReceipt.TxHash.String()
+			case strings.Contains(arg.(string), "tx.blockNumber"):
+				arguments[i] = hexutil.EncodeBig(txReceipt.BlockNumber)
+			default:
+			}
+		case bool:
+			fmt.Printf("Boolean: %t\n", v)
+		default:
+			fmt.Printf("Unknown type: %T\n", v)
+		}
+	}
+	return nil
 }
 
 func convertArgument(input string, argument interface{}) (arg interface{}, err error) {
@@ -160,12 +186,12 @@ func convertArgument(input string, argument interface{}) (arg interface{}, err e
 	return arg, nil
 }
 
-func makeSimpleCall(ctx context.Context, client *ethclient.Client, methodName string, arguments []any) (map[string]interface{}, error) {
+func MakeSimpleCall(ctx context.Context, client *ethclient.Client, methodName string, arguments []any) (interface{}, error) {
 
-	var result map[string]interface{}
+	var result interface{}
 	err := client.Client().CallContext(ctx, &result, methodName, arguments...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to call method : %s", err)
+		return nil, fmt.Errorf("failed to call method %s, %s", methodName, err)
 	}
 	return result, nil
 }

@@ -1,6 +1,15 @@
 package types
 
-import "github.com/ethereum/go-ethereum/common"
+import (
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+)
+
+const (
+	DeployContractID = 0
+	CallContractID   = 1
+	TestCallID       = 2
+)
 
 type TestConfig struct {
 	Deploy []DeployConfig   `yaml:"deploy"`
@@ -27,6 +36,7 @@ type TestCallConfig struct {
 	CallID     int    `yaml:"call_id,omitempty"`
 	MethodName string `yaml:"method_name"`
 	Arguments  []any  `yaml:"arguments"`
+	Result     any    `yaml:"result"`
 }
 
 type DeployedContract struct {
@@ -37,6 +47,11 @@ type DeployedContract struct {
 }
 
 type ExecutedCall struct {
-	CallID int
-	TxHash common.Hash
+	CallID    int
+	TxReceipt *types.Receipt
+}
+
+type TestResult struct {
+	TestID int
+	Err    error
 }

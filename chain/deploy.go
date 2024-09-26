@@ -13,11 +13,11 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func DeployContracts(ctx context.Context, client *ethclient.Client, signer *bind.TransactOpts, deployConfig []t.DeployConfig) ([]*t.DeployedContract, error) {
+func DeployContracts(ctx context.Context, client *ethclient.Client, signer *bind.TransactOpts, deployConfig []t.DeployConfig) (map[int]*t.DeployedContract, error) {
 
-	deployedContracts := make([]*t.DeployedContract, len(deployConfig))
+	deployedContracts := map[int]*t.DeployedContract{}
 
-	for i, deploy := range deployConfig {
+	for _, deploy := range deployConfig {
 		log.Printf("Deploying contract %d\n", deploy.ContractID)
 
 		deployedContract, err := deployContract(ctx, client, deploy.ContractID, deploy.ABI, deploy.Bytecode, signer)
@@ -25,7 +25,7 @@ func DeployContracts(ctx context.Context, client *ethclient.Client, signer *bind
 			return nil, fmt.Errorf("failed to deploy contract id: %d,  %s", deploy.ContractID, err)
 		}
 
-		deployedContracts[i] = deployedContract
+		deployedContracts[deploy.ContractID] = deployedContract
 	}
 
 	return deployedContracts, nil
