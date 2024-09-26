@@ -71,7 +71,7 @@ func main() {
 		log.Println("New contracts:", string(c))
 
 		log.Println("Calling contracts...")
-		_, err := chain.MakeCalls(ctx, signer, client, test.Call, contracts)
+		_, err := chain.MakeContractCalls(ctx, signer, client, test.Call, contracts)
 		if err != nil {
 			log.Printf("Failed to call contracts: %s\n", err)
 			return

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math/big"
 	t "rpctesting/types"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -14,7 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func MakeCalls(ctx context.Context, signer *bind.TransactOpts, client *ethclient.Client, callConfig []t.CallConfig, contracts []*t.DeployedContract) ([]*t.ExecutedCall, error) {
+func MakeContractCalls(ctx context.Context, signer *bind.TransactOpts, client *ethclient.Client, callConfig []t.CallConfig, contracts []*t.DeployedContract) ([]*t.ExecutedCall, error) {
 
 	executedCalls := make([]*t.ExecutedCall, len(callConfig))
 
@@ -24,7 +23,7 @@ func MakeCalls(ctx context.Context, signer *bind.TransactOpts, client *ethclient
 
 			contract := contracts[call.ContractID]
 
-			executedCall, err := makeCall(ctx, client, &call, contract, signer)
+			executedCall, err := makeContractCall(ctx, client, &call, contract, signer)
 			if err != nil {
 				return nil, fmt.Errorf("failed to call contract id: %d,  %s", call.ContractID, err)
 			}
@@ -35,7 +34,7 @@ func MakeCalls(ctx context.Context, signer *bind.TransactOpts, client *ethclient
 	return executedCalls, nil
 }
 
-func makeCall(ctx context.Context, client *ethclient.Client, call *t.CallConfig, contract *t.DeployedContract, signer *bind.TransactOpts) (*t.ExecutedCall, error) {
+func makeContractCall(ctx context.Context, client *ethclient.Client, call *t.CallConfig, contract *t.DeployedContract, signer *bind.TransactOpts) (*t.ExecutedCall, error) {
 
 	// Unmarshal the contract ABI
 	var decodedAbi abi.ABI
@@ -75,36 +74,4 @@ func makeCall(ctx context.Context, client *ethclient.Client, call *t.CallConfig,
 		CallID: call.CallID,
 		TxHash: txReceipt.TxHash,
 	}, nil
-}
-
-func convertArguments(contractABI *abi.ABI, methodName string, arguments []any) ([]interface{}, error) {
-	// Convert arguments
-	method := contractABI.Methods[methodName]
-	args := make([]interface{}, len(method.Inputs))
-	for i, input := range method.Inputs {
-		switch input.Type.String() {
-		case "uint256":
-			args[i] = big.NewInt(int64(arguments[i].(int)))
-		case "string":
-			args[i] = arguments[i].(string)
-		case "bool":
-			args[i] = arguments[i].(bool)
-		case "address":
-			args[i] = common.HexToAddress(arguments[i].(string))
-			// Add more cases as needed for other types
-		default:
-			return nil, fmt.Errorf("unsupported type: %s", input.Type.String())
-		}
-	}
-	return args, nil
-}
-
-func makeSimpleCall(ctx context.Context, client *ethclient.Client, methodName string, arguments []any) (map[string]interface{}, error) {
-
-	var result map[string]interface{}
-	err := client.Client().CallContext(ctx, &result, methodName, arguments...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to call method : %s", err)
-	}
-	return result, nil
 }
