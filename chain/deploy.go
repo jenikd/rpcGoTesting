@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	t "rpctesting/types"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -18,7 +17,6 @@ func DeployContracts(ctx context.Context, client *ethclient.Client, signer *bind
 	deployedContracts := map[int]*t.DeployedContract{}
 
 	for _, deploy := range deployConfig {
-		log.Printf("Deploying contract %d\n", deploy.ContractID)
 
 		deployedContract, err := deployContract(ctx, client, deploy.ContractID, deploy.ABI, deploy.Bytecode, signer)
 		if err != nil {
@@ -46,7 +44,7 @@ func deployContract(ctx context.Context, client *ethclient.Client, id int, contr
 	// Create a new instance of the contract
 	_, tx, _, err := bind.DeployContract(signer, abi, bytecode, client)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to deploy contract: %s", err)
 	}
 
 	txHash := tx.Hash()

@@ -21,11 +21,11 @@ func getChainId(ctx context.Context, client *rpc.Client) (string, error) {
 		return "", err
 	}
 
-	chainidInt, err := hexutil.DecodeUint64(result)
-	if err != nil {
-		return "", err
-	}
-	log.Printf("chain id: %s, decoded cahin id: %d", result, chainidInt)
+	// chainidInt, err := hexutil.DecodeUint64(result)
+	// if err != nil {
+	// 	return "", err
+	// }
+	// log.Printf("chain id: %s, decoded cahin id: %d", result, chainidInt)
 
 	return result, nil
 }

@@ -36,6 +36,8 @@ func TestParseYaml(t *testing.T) {
 
 func TestAllConfigs(t *testing.T) {
 
+	logger := Logger{Logger: log.Default(), logLevel: InfoLevel}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -46,6 +48,8 @@ func TestAllConfigs(t *testing.T) {
 
 	// Parse flags
 	flag.Parse()
+
+	logger.Debugln("Loading configuration...")
 
 	testConfigFiles, err := loadAllConfigs(*testDir)
 	if err != nil {
@@ -69,7 +73,7 @@ func TestAllConfigs(t *testing.T) {
 		return
 	}
 
-	log.Println("Deploying contracts...")
+	logger.Debugln("Deploying contracts...")
 	for fileName, test := range testConfigFiles {
 
 		_, contractCalls, err := prepareTestData(ctx, client, signer, test)
@@ -89,7 +93,7 @@ func TestAllConfigs(t *testing.T) {
 					if err != nil {
 						t.Fatalf("failed to convert arguments: %s", err)
 					}
-					log.Println("method", testCall.MethodName, " :", testCall.Arguments)
+					logger.Debugln("testing method", testCall.MethodName, " :", testCall.Arguments)
 
 					res, err := chain.MakeSimpleCall(ctx, client, testCall.MethodName, testCall.Arguments)
 					if err != nil {
@@ -100,19 +104,19 @@ func TestAllConfigs(t *testing.T) {
 					if err != nil {
 						t.Fatalf("failed to marshal result: %s", err)
 					}
-					log.Println("method result", testCall.MethodName, " :", string(r))
+					logger.Debugln("method result", testCall.MethodName, " :", string(r))
 
 					expected, err := json.Marshal(testCall.Result)
 					if err != nil {
 						// handle the error
-						log.Println("Error marshaling JSON:", err)
+						logger.Debugln("Error marshaling JSON:", err)
 						return
 					}
 
 					got, err := json.Marshal(res)
 					if err != nil {
 						// handle the error
-						log.Println("Error marshaling JSON:", err)
+						logger.Debugln("Error marshaling JSON:", err)
 						return
 					}
 
@@ -125,13 +129,32 @@ func TestAllConfigs(t *testing.T) {
 						log.Fatal(err)
 					}
 					for _, op := range patch {
-						log.Printf("Difference in result: %s\n", op)
+						logger.DebugF("Difference in result: %s\n", op)
 					}
 				}
 
 			})
 		}
 	}
+}
+
+func deleteFields(data map[string]interface{}, fields ...string) {
+	for key, value := range data {
+		if contains(fields, key) {
+			delete(data, key)
+		} else if nestedMap, ok := value.(map[string]interface{}); ok {
+			deleteFields(nestedMap, fields...)
+		}
+	}
+}
+
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
 }
 
 func prepareTestData(ctx context.Context, client *ethclient.Client, signer *bind.TransactOpts, test types.TestConfig) (map[int]*types.DeployedContract, map[int]*types.ExecutedCall, error) {
@@ -142,15 +165,37 @@ func prepareTestData(ctx context.Context, client *ethclient.Client, signer *bind
 		return nil, nil, fmt.Errorf("failed to deploy contracts: %s", err)
 	}
 
-	log.Printf("deployed %v contracts", len(contracts))
-
-	c, _ := json.MarshalIndent(contracts, "", " ")
-	log.Println("New contracts:", string(c))
-
-	log.Println("Calling contracts...")
+	// Call contracts
 	contractCalls, err := chain.MakeContractCalls(ctx, signer, client, test.Call, contracts)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to call contracts: %s", err)
 	}
 	return contracts, contractCalls, nil
+}
+
+type Logger struct {
+	*log.Logger
+	logLevel int
+}
+
+const (
+	TraceLevel = iota
+	DebugLevel
+	InfoLevel
+	WarnLevel
+	ErrorLevel
+)
+
+func (l *Logger) DebugF(format string, v ...interface{}) {
+
+	if l.logLevel <= DebugLevel {
+		l.Printf(format, v...)
+	}
+}
+
+func (l *Logger) Debugln(v ...interface{}) {
+
+	if l.logLevel <= DebugLevel {
+		l.Println(v...)
+	}
 }

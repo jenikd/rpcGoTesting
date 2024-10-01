@@ -4,12 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	t "rpctesting/types"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -47,17 +45,15 @@ func makeContractCall(ctx context.Context, client *ethclient.Client, call *t.Cal
 		return nil, fmt.Errorf("failed to convert arguments: %s", err)
 	}
 
-	data, err := decodedAbi.Pack(call.MethodName, args...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to pack arguments: %s", err)
-	}
+	// data, err := decodedAbi.Pack(call.MethodName, args...)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to pack arguments: %s", err)
+	// }
 
-	log.Println("Packed data:", common.Bytes2Hex(data))
+	// log.Println("Packed data:", common.Bytes2Hex(data))
 
 	// Get the contract instance
 	boundContract := bind.NewBoundContract(contract.Address, decodedAbi, client, client, client)
-
-	//if abi.Methods[methodName].IsConstant() {
 
 	//args := []interface{}{big.NewInt(42)}
 	tx, err := boundContract.Transact(signer, "store", args...)

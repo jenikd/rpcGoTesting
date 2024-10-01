@@ -37,6 +37,7 @@ type TestCallConfig struct {
 	MethodName string `yaml:"method_name"`
 	Arguments  []any  `yaml:"arguments"`
 	Result     any    `yaml:"result"`
+	IgnoreTest bool   `yaml:"ignore_test"`
 }
 
 type DeployedContract struct {
