@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"rpctesting/chain"
 	"rpctesting/config"
 	"rpctesting/types"
@@ -82,12 +83,17 @@ func TestAllConfigs(t *testing.T) {
 			return
 		}
 
+		// For all test calls
 		for _, testCall := range test.Test {
+
+			// Ignore test
+			if testCall.IgnoreTest {
+				continue
+			}
+
 			t.Run(fileName+" - "+testCall.TestName, func(t *testing.T) {
 
 				if testCall.CallID >= 0 {
-
-					//callTxHash := calls[testCall.CallID].TxHash
 
 					err := chain.ConvertArgumentsWithTXReceipt(testCall.Arguments, contractCalls[testCall.CallID].TxReceipt)
 					if err != nil {
@@ -100,42 +106,83 @@ func TestAllConfigs(t *testing.T) {
 						t.Fatalf("failed to call method : %s", err)
 					}
 
-					r, err := json.MarshalIndent(res, "", "  ")
-					if err != nil {
-						t.Fatalf("failed to marshal result: %s", err)
-					}
-					logger.Debugln("method result", testCall.MethodName, " :", string(r))
-
-					expected, err := json.Marshal(testCall.Result)
-					if err != nil {
-						// handle the error
-						logger.Debugln("Error marshaling JSON:", err)
-						return
-					}
-
-					got, err := json.Marshal(res)
-					if err != nil {
-						// handle the error
-						logger.Debugln("Error marshaling JSON:", err)
-						return
-					}
-
-					patch, err := jsondiff.CompareJSON(
-						expected,
-						got,
-						jsondiff.Ignores("/city/name", "/D"),
-					)
-					if err != nil {
-						log.Fatal(err)
-					}
-					for _, op := range patch {
-						logger.Debugf("Difference in result: %s\n", op)
+					if isOk := isEqualJson(testCall.Result, res, logger, testCall.IgnoreFields...); !isOk {
+						t.Error("result is not as expected")
+						printInterface(testCall.Result, logger, "expected:")
+						printInterface(res, logger, "got     :")
 					}
 				}
-
 			})
 		}
 	}
+}
+
+func isEqualJson(expected any, res any, logger Logger, ignoreFields ...string) bool {
+
+	if reflect.TypeOf(expected).Kind() != reflect.TypeOf(res).Kind() {
+		logger.Printf("Differet type of expected result, want: %s, got: %s\n", reflect.TypeOf(expected).Kind(), reflect.TypeOf(res).Kind())
+		return false
+	}
+
+	err := removeIgnoredFields(expected, res, ignoreFields...)
+	if err != nil {
+		logger.Debugln("Error removing fields:", err)
+		return false
+	}
+	expectedJson, err := json.Marshal(expected)
+	if err != nil {
+		logger.Debugln("Error marshaling JSON:", err)
+		return true
+	}
+
+	got, err := json.Marshal(res)
+	if err != nil {
+		logger.Debugln("Error marshaling JSON:", err)
+		return true
+	}
+
+	patch, err := jsondiff.CompareJSON(expectedJson, got)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if len(patch.String()) == 0 {
+		return true
+	}
+	for _, op := range patch {
+		logger.Printf("Difference in result: %s\n", op)
+	}
+	return false
+}
+
+func removeIgnoredFields(expected any, res any, ignoreFields ...string) error {
+	if reflect.TypeOf(expected) != reflect.TypeOf("") {
+
+		if reflect.TypeOf(expected).Kind() == reflect.Slice {
+
+			var m map[string]interface{}
+
+			for i := range res.([]any) {
+
+				if reflect.TypeOf(expected.([]any)[i]).Kind() != reflect.TypeOf(m).Kind() ||
+					reflect.TypeOf(res.([]any)[i]).Kind() != reflect.TypeOf(m).Kind() {
+
+					return fmt.Errorf("not comparable types")
+				}
+				// remove ignored fields
+				deleteFields(res.([]any)[i].(map[string]interface{}), ignoreFields...)
+				deleteFields(expected.([]any)[i].(map[string]interface{}), ignoreFields...)
+			}
+		}
+	}
+	return nil
+}
+
+func printInterface(obj interface{}, logger Logger, v ...interface{}) {
+	r, err := json.MarshalIndent(obj, "", "  ")
+	if err != nil {
+		logger.Fatalf("failed to marshal object: %s", err)
+	}
+	logger.Println(v, ":", string(r))
 }
 
 func deleteFields(data map[string]interface{}, fields ...string) {
@@ -193,7 +240,7 @@ func (l *Logger) Debugf(format string, v ...interface{}) {
 	}
 }
 
-func (l *Logger) Debugln(v ...interface{}) {
+func (l *Logger) Debugln(v ...any) {
 
 	if l.logLevel <= DebugLevel {
 		l.Println(v...)

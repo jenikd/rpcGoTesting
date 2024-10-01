@@ -31,13 +31,14 @@ type CallConfig struct {
 }
 
 type TestCallConfig struct {
-	TestID     int    `yaml:"test_id"`
-	TestName   string `yaml:"test_name"`
-	CallID     int    `yaml:"call_id,omitempty"`
-	MethodName string `yaml:"method_name"`
-	Arguments  []any  `yaml:"arguments"`
-	Result     any    `yaml:"result"`
-	IgnoreTest bool   `yaml:"ignore_test"`
+	TestID       int      `yaml:"test_id"`
+	TestName     string   `yaml:"test_name"`
+	CallID       int      `yaml:"call_id,omitempty"`
+	MethodName   string   `yaml:"method_name"`
+	Arguments    []any    `yaml:"arguments"`
+	Result       any      `yaml:"result"`
+	IgnoreTest   bool     `yaml:"ignore_test"`
+	IgnoreFields []string `yaml:"ignore_fields"`
 }
 
 type DeployedContract struct {
