@@ -129,7 +129,7 @@ func TestAllConfigs(t *testing.T) {
 						log.Fatal(err)
 					}
 					for _, op := range patch {
-						logger.DebugF("Difference in result: %s\n", op)
+						logger.Debugf("Difference in result: %s\n", op)
 					}
 				}
 
@@ -186,7 +186,7 @@ const (
 	ErrorLevel
 )
 
-func (l *Logger) DebugF(format string, v ...interface{}) {
+func (l *Logger) Debugf(format string, v ...interface{}) {
 
 	if l.logLevel <= DebugLevel {
 		l.Printf(format, v...)
