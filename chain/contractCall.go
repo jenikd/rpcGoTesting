@@ -55,8 +55,7 @@ func makeContractCall(ctx context.Context, client *ethclient.Client, call *t.Cal
 	// Get the contract instance
 	boundContract := bind.NewBoundContract(contract.Address, decodedAbi, client, client, client)
 
-	//args := []interface{}{big.NewInt(42)}
-	tx, err := boundContract.Transact(signer, "store", args...)
+	tx, err := boundContract.Transact(signer, call.MethodName, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make transaction: %s", err)
 	}
