@@ -12,6 +12,7 @@ const (
 )
 
 type TestConfig struct {
+	Ignore bool             `yaml:"ignore"`
 	Deploy []DeployConfig   `yaml:"deploy"`
 	Call   []CallConfig     `yaml:"contract_call"`
 	Test   []TestCallConfig `yaml:"test_call"`
