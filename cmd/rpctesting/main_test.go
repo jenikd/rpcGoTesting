@@ -77,6 +77,10 @@ func TestAllConfigs(t *testing.T) {
 	logger.Debugln("Deploying contracts...")
 	for fileName, test := range testConfigFiles {
 
+		if test.Ignore {
+			continue
+		}
+
 		_, contractCalls, err := prepareTestData(ctx, client, signer, test)
 		if err != nil {
 			t.Errorf("Failed to prepare test data: %s", err)
@@ -93,7 +97,11 @@ func TestAllConfigs(t *testing.T) {
 
 			t.Run(fileName+" - "+testCall.TestName, func(t *testing.T) {
 
-				if testCall.CallID >= 0 {
+				if testCall.CallID > 0 {
+
+					if contractCalls[testCall.CallID] == nil {
+						t.Fatalf("call id %d not found", testCall.CallID)
+					}
 
 					err := chain.ConvertArgumentsWithTXReceipt(testCall.Arguments, contractCalls[testCall.CallID].TxReceipt)
 					if err != nil {
@@ -155,25 +163,34 @@ func isEqualJson(expected any, res any, logger Logger, ignoreFields ...string) b
 }
 
 func removeIgnoredFields(expected any, res any, ignoreFields ...string) error {
-	if reflect.TypeOf(expected) != reflect.TypeOf("") {
 
-		if reflect.TypeOf(expected).Kind() == reflect.Slice {
-
-			var m map[string]interface{}
-
-			for i := range res.([]any) {
-
-				if reflect.TypeOf(expected.([]any)[i]).Kind() != reflect.TypeOf(m).Kind() ||
-					reflect.TypeOf(res.([]any)[i]).Kind() != reflect.TypeOf(m).Kind() {
-
-					return fmt.Errorf("not comparable types")
-				}
-				// remove ignored fields
-				deleteFields(res.([]any)[i].(map[string]interface{}), ignoreFields...)
-				deleteFields(expected.([]any)[i].(map[string]interface{}), ignoreFields...)
-			}
-		}
+	// expected is string
+	if reflect.TypeOf(expected).Kind() == reflect.String {
+		return nil
 	}
+
+	if reflect.TypeOf(expected).Kind() == reflect.Slice {
+
+		var m map[string]interface{}
+
+		for i := range res.([]any) {
+
+			if reflect.TypeOf(expected.([]any)[i]).Kind() != reflect.TypeOf(m).Kind() ||
+				reflect.TypeOf(res.([]any)[i]).Kind() != reflect.TypeOf(m).Kind() {
+
+				return fmt.Errorf("not comparable types")
+			}
+			// remove ignored fields
+			deleteFields(res.([]any)[i].(map[string]interface{}), ignoreFields...)
+			deleteFields(expected.([]any)[i].(map[string]interface{}), ignoreFields...)
+		}
+	} else if reflect.TypeOf(expected).Kind() == reflect.Map {
+
+		deleteFields(res.(map[string]interface{}), ignoreFields...)
+		deleteFields(expected.(map[string]interface{}), ignoreFields...)
+		fmt.Println(expected)
+	}
+
 	return nil
 }
 
@@ -191,6 +208,10 @@ func deleteFields(data map[string]interface{}, fields ...string) {
 			delete(data, key)
 		} else if nestedMap, ok := value.(map[string]interface{}); ok {
 			deleteFields(nestedMap, fields...)
+		} else if nestedArray, ok := value.([]interface{}); ok {
+			for _, v := range nestedArray {
+				deleteFields(v.(map[string]interface{}), fields...)
+			}
 		}
 	}
 }

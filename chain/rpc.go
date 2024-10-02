@@ -140,7 +140,6 @@ func ConvertArgumentsWithAbi(contractABI *abi.ABI, methodName string, arguments 
 
 func ConvertArgumentsWithTXReceipt(arguments []interface{}, txReceipt *types.Receipt) error {
 
-	//args := make([]interface{}, len(arguments))
 	for i, arg := range arguments {
 		switch v := arg.(type) {
 		case int:
@@ -155,6 +154,9 @@ func ConvertArgumentsWithTXReceipt(arguments []interface{}, txReceipt *types.Rec
 			}
 		case bool:
 			fmt.Printf("Boolean: %t\n", v)
+
+		case map[string]interface{}:
+			// do nothing
 		default:
 			fmt.Printf("Unknown type: %T\n", v)
 		}
