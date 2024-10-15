@@ -83,7 +83,7 @@ func TestAllConfigs(t *testing.T) {
 
 		_, contractCalls, err := prepareTestData(ctx, client, signer, test)
 		if err != nil {
-			t.Errorf("Failed to prepare test data: %s", err)
+			t.Errorf("Failed to prepare test data for file %s, error: %s", fileName, err)
 			return
 		}
 
