@@ -152,3 +152,12 @@ func getChainId(ctx context.Context, client *rpc.Client) (string, error) {
 	}
 	return result, nil
 }
+
+func getGasPrice(ctx context.Context, client *rpc.Client) (*big.Int, error) {
+	var result string
+	err := client.CallContext(ctx, &result, "eth_gasPrice")
+	if err != nil {
+		return nil, err
+	}
+	return hexutil.DecodeBig(result)
+}
