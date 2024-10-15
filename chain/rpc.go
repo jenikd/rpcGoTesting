@@ -44,8 +44,10 @@ func GetSigner(ctx context.Context, clientConfig *config.ClientConfig, client *r
 
 	//deployer.GasLimit = uint64(clientConfig.GasLimit)
 
-	//deployer.GasPrice, _ = new(big.Int).SetString("0x17CE355616", 0)
-	deployer.GasPrice, _ = new(big.Int).SetString("0x111739903581", 0)
+	deployer.GasPrice, err = getGasPrice(ctx, client)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get gas price: %s", err)
+	}
 
 	return deployer, nil
 }
