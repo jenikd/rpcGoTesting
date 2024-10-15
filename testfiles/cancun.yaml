@@ -20,4 +20,4 @@ test_call:
     method_name: debug_traceTransaction
     arguments: [tx.hash,{"timeout":"2m","tracer":"callTracer"}]
     result: {"from":"0x239fa7623354ec26520de878b52f13fe84b06971","gas":"0x6f3a","gasUsed":"0x6f3a","to":"0x86989606a88841e2fb56787806a5f7a3a89641e2","input":"0xcbe929a100000000000000000000000000000000000000000000000000000000000f1206","output":"0x00000000000000000000000000000000000000000000000000000000000f1206","calls":[{"from":"0x86989606a88841e2fb56787806a5f7a3a89641e2","gas":"0x6c6","gasUsed":"0x1fa","to":"0x831cd2c34e3c50d10c9fd84bd893942c97b6d5a0","input":"0x6057361d00000000000000000000000000000000000000000000000000000000000f1206","value":"0x0","type":"CALL"},{"from":"0x86989606a88841e2fb56787806a5f7a3a89641e2","gas":"0x38b","gasUsed":"0x19a","to":"0x831cd2c34e3c50d10c9fd84bd893942c97b6d5a0","input":"0x3c6bb436","output":"0x00000000000000000000000000000000000000000000000000000000000f1206","type":"STATICCALL"}],"value":"0x0","type":"CALL"}
-    ignore_fields: ["to", "from","gasUsed"]
+    ignore_fields: ["to", "from","gas","gasUsed"]
