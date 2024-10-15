@@ -188,7 +188,6 @@ func removeIgnoredFields(expected any, res any, ignoreFields ...string) error {
 
 		deleteFields(res.(map[string]interface{}), ignoreFields...)
 		deleteFields(expected.(map[string]interface{}), ignoreFields...)
-		fmt.Println(expected)
 	}
 
 	return nil
