@@ -3,13 +3,10 @@ package chain
 import (
 	"context"
 	"crypto/ecdsa"
-	"encoding/json"
 	"fmt"
-	"log"
 	"math/big"
 	"rpctesting/config"
 	"strings"
-	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -50,82 +47,6 @@ func GetSigner(ctx context.Context, clientConfig *config.ClientConfig, client *r
 	}
 
 	return deployer, nil
-}
-
-func Call() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	rpcURL := "http://localhost:8545"
-
-	client, err := rpc.Dial(rpcURL)
-	if err != nil {
-		return err
-	}
-	defer client.Close()
-
-	gasPrice, err := getGasPrice(ctx, client)
-	if err != nil {
-		return err
-	}
-
-	from := common.HexToAddress("0x239fA7623354eC26520dE878B52f13Fe84b06971")
-	to := common.HexToAddress("0x67b1d87101671b127f5f8714789C7192f7ad340e")
-	value := "0xde0b6b3a7640000"
-
-	nonce, err := getNonce(ctx, client, &from)
-	if err != nil {
-		return err
-	}
-
-	gas, err := estimateGas(ctx, client, []interface{}{
-		map[string]interface{}{
-			"from":  from.String(),
-			"to":    to.String(),
-			"value": value,
-		},
-	})
-	if err != nil {
-		return err
-	}
-
-	signedTX, err := signTx(ctx, client, []interface{}{
-		map[string]interface{}{
-			"from":     from.String(),
-			"to":       to.String(),
-			"value":    value,
-			"gas":      hexutil.EncodeBig(gas),
-			"gasPrice": hexutil.EncodeBig(gasPrice),
-			"nonce":    hexutil.EncodeBig(nonce),
-			"data":     "0x",
-		},
-	})
-	if err != nil {
-		return err
-	}
-
-	txHash, err := sendRawTx(ctx, client, []interface{}{signedTX})
-	if err != nil {
-		return err
-	}
-
-	// Wait for the transaction to be mined
-	receipt, err := waitMined(ctx, client, common.HexToHash(txHash))
-	if err != nil {
-		return err
-	}
-
-	if receipt == nil {
-		return fmt.Errorf("transaction failed with status %v", receipt)
-	} else {
-		s, err := json.MarshalIndent(receipt, "", "  ")
-		if err != nil {
-			return err
-		}
-
-		log.Printf("tx: %v", string(s))
-	}
-
-	return nil
 }
 
 func ConvertArgumentsWithAbi(contractABI *abi.ABI, methodName string, arguments []any) ([]interface{}, error) {
@@ -203,16 +124,6 @@ func MakeSimpleCall(ctx context.Context, client *ethclient.Client, methodName st
 	return result, nil
 }
 
-func addressFromPrivateKey(privateKey *ecdsa.PrivateKey) (common.Address, error) {
-	publicKey := privateKey.Public()
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		return common.Address{}, fmt.Errorf("publicKey is not of type *ecdsa.PublicKey")
-	}
-	address := crypto.PubkeyToAddress(*publicKeyECDSA)
-	return address, nil
-}
-
 func GetClient(provider string) (*ethclient.Client, error) {
 
 	client, err := ethclient.Dial(provider)
@@ -231,4 +142,13 @@ func getPrivateKey(key string) (*ecdsa.PrivateKey, error) {
 	}
 
 	return privateKey, nil
+}
+
+func getChainId(ctx context.Context, client *rpc.Client) (string, error) {
+	var result string
+	err := client.CallContext(ctx, &result, "eth_chainId")
+	if err != nil {
+		return "", err
+	}
+	return result, nil
 }

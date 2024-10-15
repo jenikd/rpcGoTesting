@@ -52,7 +52,7 @@ func TestAllConfigs(t *testing.T) {
 
 	logger.Debugln("Loading configuration...")
 
-	testConfigFiles, err := loadAllConfigs(*testDir)
+	testConfigFiles, err := config.LoadAllConfigs(*testDir)
 	if err != nil {
 		t.Fatalf("Failed to load test configs: %s\n", err)
 	}
