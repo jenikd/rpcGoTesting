@@ -5,7 +5,6 @@ package config
 import (
 	"os"
 	"rpctesting/types"
-	"strconv"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -26,15 +25,9 @@ func GetClientConfig() (*ClientConfig, error) {
 		return nil, err
 	}
 
-	gasLimit, err := strconv.ParseUint(os.Getenv("GAS_LIMIT"), 10, 64)
-	if err != nil {
-		return nil, err
-	}
-
 	return &ClientConfig{
 		ProviderUrl: os.Getenv("PROVIDER_URL"),
 		Pk:          os.Getenv("PK"),
-		GasLimit:    gasLimit,
 	}, nil
 }
 
