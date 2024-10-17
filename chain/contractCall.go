@@ -40,25 +40,21 @@ func makeContractCall(ctx context.Context, client *ethclient.Client, call *t.Cal
 		return nil, fmt.Errorf("failed to unmarshal contract ABI: %s", err)
 	}
 
+	// Convert arguments
 	args, err := ConvertArgumentsWithAbi(&decodedAbi, call.MethodName, call.Arguments)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert arguments: %s", err)
 	}
 
-	// data, err := decodedAbi.Pack(call.MethodName, args...)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to pack arguments: %s", err)
-	// }
-
-	// log.Println("Packed data:", common.Bytes2Hex(data))
-
 	// Get the contract instance
 	boundContract := bind.NewBoundContract(contract.Address, decodedAbi, client, client, client)
 
+	// Call the contract
 	tx, err := boundContract.Transact(signer, call.MethodName, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make transaction: %s", err)
 	}
+
 	// Wait for the transaction to be mined
 	txReceipt, err := bind.WaitMined(ctx, client, tx)
 	if err != nil {

@@ -24,22 +24,15 @@ func GetSigner(ctx context.Context, clientConfig *config.ClientConfig, client *r
 		return nil, fmt.Errorf("failed to get private key: %s", err)
 	}
 
-	chainIdString, err := getChainId(ctx, client)
+	chainId, err := getChainId(ctx, client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get chain id: %s", err)
-	}
-
-	chainId, err := hexutil.DecodeBig(chainIdString)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode chain id: %s", err)
 	}
 
 	deployer, err := bind.NewKeyedTransactorWithChainID(privateKey, chainId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create deployer: %s", err)
 	}
-
-	//deployer.GasLimit = uint64(clientConfig.GasLimit)
 
 	deployer.GasPrice, err = getGasPrice(ctx, client)
 	if err != nil {
@@ -50,11 +43,11 @@ func GetSigner(ctx context.Context, clientConfig *config.ClientConfig, client *r
 }
 
 func ConvertArgumentsWithAbi(contractABI *abi.ABI, methodName string, arguments []any) ([]interface{}, error) {
-	// Convert arguments
+
 	method := contractABI.Methods[methodName]
 	args := make([]interface{}, len(method.Inputs))
-	for i, input := range method.Inputs {
 
+	for i, input := range method.Inputs {
 		arg, err := convertArgument(input.Type.String(), arguments[i])
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert argument: %s, %s", arguments[i], err)
@@ -129,32 +122,28 @@ func MakeSimpleCall(ctx context.Context, client *ethclient.Client, methodName st
 }
 
 func GetClient(provider string) (*ethclient.Client, error) {
-
 	client, err := ethclient.Dial(provider)
 	if err != nil {
 		return nil, err
 	}
-
 	return client, nil
 }
 
 func getPrivateKey(key string) (*ecdsa.PrivateKey, error) {
-
 	privateKey, err := crypto.HexToECDSA(key)
 	if err != nil {
 		return nil, err
 	}
-
 	return privateKey, nil
 }
 
-func getChainId(ctx context.Context, client *rpc.Client) (string, error) {
-	var result string
+func getChainId(ctx context.Context, client *rpc.Client) (*big.Int, error) {
+	var result *hexutil.Big
 	err := client.CallContext(ctx, &result, "eth_chainId")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return result, nil
+	return result.ToInt(), nil
 }
 
 func getGasPrice(ctx context.Context, client *rpc.Client) (*big.Int, error) {

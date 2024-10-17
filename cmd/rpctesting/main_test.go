@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"rpctesting/chain"
 	"rpctesting/config"
+	"rpctesting/tools"
 	"rpctesting/types"
 	"testing"
 	"time"
@@ -181,13 +182,13 @@ func removeIgnoredFields(expected any, res any, ignoreFields ...string) error {
 				return fmt.Errorf("not comparable types")
 			}
 			// remove ignored fields
-			deleteFields(res.([]any)[i].(map[string]interface{}), ignoreFields...)
-			deleteFields(expected.([]any)[i].(map[string]interface{}), ignoreFields...)
+			tools.DeleteFields(res.([]any)[i].(map[string]interface{}), ignoreFields...)
+			tools.DeleteFields(expected.([]any)[i].(map[string]interface{}), ignoreFields...)
 		}
 	} else if reflect.TypeOf(expected).Kind() == reflect.Map {
 
-		deleteFields(res.(map[string]interface{}), ignoreFields...)
-		deleteFields(expected.(map[string]interface{}), ignoreFields...)
+		tools.DeleteFields(res.(map[string]interface{}), ignoreFields...)
+		tools.DeleteFields(expected.(map[string]interface{}), ignoreFields...)
 	}
 
 	return nil
@@ -199,32 +200,6 @@ func printInterface(obj interface{}, logger Logger, v ...interface{}) {
 		logger.Fatalf("failed to marshal object: %s", err)
 	}
 	logger.Println(v, ":", string(r))
-}
-
-func deleteFields(data map[string]interface{}, fields ...string) {
-	for key, value := range data {
-		if contains(fields, key) {
-			delete(data, key)
-		} else if nestedMap, ok := value.(map[string]interface{}); ok {
-			deleteFields(nestedMap, fields...)
-		} else if nestedArray, ok := value.([]interface{}); ok {
-			for _, v := range nestedArray {
-				if _, ok := v.(string); ok {
-					continue
-				}
-				deleteFields(v.(map[string]interface{}), fields...)
-			}
-		}
-	}
-}
-
-func contains(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
 }
 
 func prepareTestData(ctx context.Context, client *ethclient.Client, signer *bind.TransactOpts, test types.TestConfig) (map[int]*types.DeployedContract, map[int]*types.ExecutedCall, error) {
