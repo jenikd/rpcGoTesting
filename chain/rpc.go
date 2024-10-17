@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"math/big"
 	"rpctesting/config"
+	t "rpctesting/types"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -64,7 +64,7 @@ func ConvertArgumentsWithAbi(contractABI *abi.ABI, methodName string, arguments 
 	return args, nil
 }
 
-func ConvertArgumentsWithTXReceipt(arguments []interface{}, txReceipt *types.Receipt) error {
+func ConvertArgumentsWithTXReceipt(arguments []interface{}, txCall *t.ExecutedCall) error {
 
 	for i, arg := range arguments {
 		switch v := arg.(type) {
@@ -73,18 +73,20 @@ func ConvertArgumentsWithTXReceipt(arguments []interface{}, txReceipt *types.Rec
 		case string:
 			switch {
 			case strings.Contains(arg.(string), "tx.hash"):
-				arguments[i] = txReceipt.TxHash.String()
+				arguments[i] = txCall.TxReceipt.TxHash.String()
+			case strings.Contains(arg.(string), "contract.address"):
+				arguments[i] = txCall.ContractAddress.String()
 			case strings.Contains(arg.(string), "tx.blockNumber"):
-				arguments[i] = hexutil.EncodeBig(txReceipt.BlockNumber)
+				arguments[i] = hexutil.EncodeBig(txCall.TxReceipt.BlockNumber)
 			default:
 			}
 		case bool:
 			fmt.Printf("Boolean: %t\n", v)
 
-		case map[string]interface{}:
+		case map[string]interface{}, []interface{}:
 			// do nothing
 		default:
-			fmt.Printf("Unknown type: %T\n", v)
+			fmt.Printf("Unknown type: arg: %v type %T\n", arg, v)
 		}
 	}
 	return nil
@@ -107,6 +109,8 @@ func convertArgument(input string, argument interface{}) (arg interface{}, err e
 		arg = argument.(bool)
 	case "address":
 		arg = common.HexToAddress(argument.(string))
+	case "bytes32":
+		arg = common.HexToHash(argument.(string))
 
 	default:
 		return nil, fmt.Errorf("unsupported type: %s", input)

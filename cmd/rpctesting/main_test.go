@@ -74,7 +74,7 @@ func TestAllConfigs(t *testing.T) {
 		return
 	}
 
-	logger.Debugln("Deploying contracts...")
+	// For all test files
 	for fileName, test := range testConfigFiles {
 
 		if test.Ignore {
@@ -103,7 +103,7 @@ func TestAllConfigs(t *testing.T) {
 						t.Fatalf("call id %d not found", testCall.CallID)
 					}
 
-					err := chain.ConvertArgumentsWithTXReceipt(testCall.Arguments, contractCalls[testCall.CallID].TxReceipt)
+					err := chain.ConvertArgumentsWithTXReceipt(testCall.Arguments, contractCalls[testCall.CallID])
 					if err != nil {
 						t.Fatalf("failed to convert arguments: %s", err)
 					}
@@ -209,6 +209,9 @@ func deleteFields(data map[string]interface{}, fields ...string) {
 			deleteFields(nestedMap, fields...)
 		} else if nestedArray, ok := value.([]interface{}); ok {
 			for _, v := range nestedArray {
+				if _, ok := v.(string); ok {
+					continue
+				}
 				deleteFields(v.(map[string]interface{}), fields...)
 			}
 		}

@@ -50,8 +50,9 @@ type DeployedContract struct {
 }
 
 type ExecutedCall struct {
-	CallID    int
-	TxReceipt *types.Receipt
+	CallID          int
+	ContractAddress common.Address
+	TxReceipt       *types.Receipt
 }
 
 type TestResult struct {

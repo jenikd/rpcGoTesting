@@ -66,7 +66,8 @@ func makeContractCall(ctx context.Context, client *ethclient.Client, call *t.Cal
 	}
 
 	return &t.ExecutedCall{
-		CallID:    call.CallID,
-		TxReceipt: txReceipt,
+		CallID:          call.CallID,
+		ContractAddress: contract.Address,
+		TxReceipt:       txReceipt,
 	}, nil
 }
