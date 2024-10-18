@@ -205,7 +205,7 @@ func printInterface(obj interface{}, logger Logger, v ...interface{}) {
 func prepareTestData(ctx context.Context, client *ethclient.Client, signer *bind.TransactOpts, test types.TestConfig) (map[int]*types.DeployedContract, map[int]*types.ExecutedCall, error) {
 
 	// Deploy contracts
-	contracts, err := chain.DeployContracts(ctx, client, signer, test.Deploy)
+	contracts, err := chain.NewDeployer(ctx, client, signer).DeployContracts(test.Deploy)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to deploy contracts: %s", err)
 	}
