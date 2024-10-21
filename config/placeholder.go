@@ -15,6 +15,7 @@ const (
 	TX_HASH          Placeholder = "tx.hash"
 	CONTRACT_ADDRESS Placeholder = "contract.address"
 	TX_BLOCK_NUMBER  Placeholder = "tx.blocknumber"
+	TX_BLOCK_HASH    Placeholder = "tx.blockhash"
 )
 
 func NewPlaceholder(str string) Placeholder {
@@ -78,6 +79,8 @@ func replacePlaceholder(str string, txCall *types.ExecutedCall) string {
 		return txCall.TxReceipt.TxHash.String()
 	case TX_BLOCK_NUMBER:
 		return hexutil.EncodeBig(txCall.TxReceipt.BlockNumber)
+	case TX_BLOCK_HASH:
+		return txCall.TxReceipt.BlockHash.String()
 	default:
 		return str
 	}
