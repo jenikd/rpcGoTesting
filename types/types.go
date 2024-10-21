@@ -53,6 +53,7 @@ type ExecutedCall struct {
 	CallID          int
 	ContractAddress common.Address
 	TxReceipt       *types.Receipt
+	From            common.Address
 }
 
 type TestResult struct {
