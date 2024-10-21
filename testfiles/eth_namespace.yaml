@@ -1,8 +1,17 @@
 ignore: false
 
 deploy:
+  - contract_id: 1
+    # Storage contract solidity 0.8.26 VM compiler set to cancun
+    # // SPDX-License-Identifier: GPL-3.0 pragma solidity >=0.8.2 <0.9.0; /** * @title Storage * @dev Store & retrieve value in a variable * @custom:dev-run-script ./scripts/deploy_with_ethers.ts */ contract Storage { uint256 number; /** * @dev Store value in variable * @param num value to store */ function store(uint256 num) public { number = num; } /** * @dev Return value * @return value of 'number' */ function retrieve() public view returns (uint256) { return number; } }
+    abi: '[{"inputs":[],"name":"retrieve","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"num","type":"uint256"}],"name":"store","outputs":[],"stateMutability":"nonpayable","type":"function"}]'
+    bytecode: 0x6080604052348015600e575f80fd5b506101438061001c5f395ff3fe608060405234801561000f575f80fd5b5060043610610034575f3560e01c80632e64cec1146100385780636057361d14610056575b5f80fd5b610040610072565b60405161004d919061009b565b60405180910390f35b610070600480360381019061006b91906100e2565b61007a565b005b5f8054905090565b805f8190555050565b5f819050919050565b61009581610083565b82525050565b5f6020820190506100ae5f83018461008c565b92915050565b5f80fd5b6100c181610083565b81146100cb575f80fd5b50565b5f813590506100dc816100b8565b92915050565b5f602082840312156100f7576100f66100b4565b5b5f610104848285016100ce565b9150509291505056fea26469706673582212209a0dd35336aff1eb3eeb11db76aa60a1427a12c1b92f945ea8c8d1dfa337cf2264736f6c634300081a0033
 
 contract_call:
+  - call_id: 1
+    contract_id: 1
+    method_name: store
+    arguments: [6]
 
 test_call:
   - test_name: "eth_accounts"
@@ -11,18 +20,30 @@ test_call:
 
   - test_name: "eth_blobBaseFee"
     method_name: "eth_blobBaseFee"
-    result: "NOT_AVAILABLE"
+    result: "NOT_AVAILABLE" # TODO not implemented
 
   - test_name: "eth_blockNumber"
     method_name: "eth_blockNumber"
     result: "HEX_NUMBER"
 
-  # TODO create a contract which will return data for this call
   - test_name: "eth_call"
     method_name: "eth_call"
-    arguments: [{"timeout":"2m","tracer":"callTracer"},"latest"]
-    result: "0x"
+    call_id: 1 # need deployed contract
+    arguments: [{"to":"contract.address", "data":"0x2e64cec1"},"latest"]
+    result: "0x0000000000000000000000000000000000000000000000000000000000000006"
 
   - test_name: "eth_chainId"
     method_name: "eth_chainId"
+    result: "HEX_NUMBER"
+
+  - test_name: "eth_estimateGas transfer"
+    method_name: "eth_estimateGas"
+    call_id: 1 # need signer from a call
+    arguments: [{"from":"signer","to":"0x0747E45a742b2338c21406982F12d326b671921c", "value":"0x186a0"}]
+    result: "HEX_NUMBER"
+
+  - test_name: "eth_estimateGas contract call"
+    method_name: "eth_estimateGas"
+    call_id: 1 # need signer and deployed contract
+    arguments: [{"from":"signer","to":"contract.address", "data":"0x6057361d0000000000000000000000000000000000000000000000000000000000000007"}]
     result: "HEX_NUMBER"
