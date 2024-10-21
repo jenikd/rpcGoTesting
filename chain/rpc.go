@@ -37,6 +37,9 @@ func GetSigner(ctx context.Context, clientConfig *config.ClientConfig, client *r
 		return nil, fmt.Errorf("failed to get gas price: %s", err)
 	}
 
+	// Double the gas price to be sure transactions will procceed
+	deployer.GasPrice.Mul(new(big.Int).SetUint64(2), deployer.GasPrice)
+
 	return deployer, nil
 }
 
