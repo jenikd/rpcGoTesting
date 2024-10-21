@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/wI2L/jsondiff"
 	"gopkg.in/yaml.v3"
@@ -108,22 +109,73 @@ func TestAllConfigs(t *testing.T) {
 					if err != nil {
 						t.Fatalf("failed to convert arguments: %s", err)
 					}
-					logger.Debugln("testing method", testCall.MethodName, " :", testCall.Arguments)
+				}
 
-					res, err := chain.MakeSimpleCall(ctx, client, testCall.MethodName, testCall.Arguments)
-					if err != nil {
-						t.Fatalf("failed to call method : %s", err)
-					}
+				logger.Debugln("testing method", testCall.MethodName, " :", testCall.Arguments)
 
-					if isOk := isEqualJson(testCall.Result, res, logger, testCall.IgnoreFields...); !isOk {
-						t.Error("result is not as expected")
-						printInterface(testCall.Result, logger, "expected:")
-						printInterface(res, logger, "got     :")
+				res, err := chain.MakeSimpleCall(ctx, client, testCall.MethodName, testCall.Arguments)
+				if err != nil {
+					if want, ok := testCall.Result.(string); ok && newResultType(want) == NOT_AVAILABLE {
+						return
 					}
+					t.Fatalf("failed to call method : %s", err)
+				}
+
+				if err = checkResult(testCall.Result, res, logger, testCall.IgnoreFields...); err != nil {
+					t.Fatalf("failed to check result: %s", err)
 				}
 			})
 		}
 	}
+}
+
+type ResultType string
+
+const (
+	NOT_AVAILABLE ResultType = "NOT_AVAILABLE"
+	HEX_NUMBER    ResultType = "HEX_NUMBER"
+	ARRAY         ResultType = "ARRAY"
+)
+
+func newResultType(s string) ResultType {
+	return ResultType(s)
+}
+
+func checkResult(expected any, got any, logger Logger, ignoreFields ...string) error {
+
+	if expected == nil {
+		return nil
+	}
+
+	if str, ok := expected.(string); ok {
+
+		want := newResultType(str)
+		switch want {
+		case HEX_NUMBER:
+			if have, ok := got.(string); ok {
+				_, err := hexutil.DecodeUint64(have)
+				if err != nil {
+					return err
+				}
+				return nil
+			} else {
+				return fmt.Errorf("result is not a hex number")
+			}
+		case ARRAY:
+			if have, ok := got.([]any); ok && len(have) > 0 {
+				return nil
+			} else {
+				return fmt.Errorf("result is not an array with value")
+			}
+		}
+	}
+
+	if isOk := isEqualJson(expected, got, logger, ignoreFields...); !isOk {
+		printInterface(expected, logger, "expected:")
+		printInterface(got, logger, "got     :")
+		return fmt.Errorf("result is not as expected")
+	}
+	return nil
 }
 
 func isEqualJson(expected any, res any, logger Logger, ignoreFields ...string) bool {

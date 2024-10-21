@@ -7,5 +7,12 @@ contract_call:
 test_call:
   - test_name: "eth_accounts"
     method_name: "eth_accounts"
+    result: "ARRAY"
 
-  
+  - test_name: "eth_blobBaseFee"
+    method_name: "eth_blobBaseFee"
+    result: "NOT_AVAILABLE"
+
+  - test_name: "eth_blockNumber"
+    method_name: "eth_blockNumber"
+    result: "HEX_NUMBER"
