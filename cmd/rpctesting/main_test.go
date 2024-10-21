@@ -150,7 +150,7 @@ func checkResult(expected any, got any, logger *tools.Logger, ignoreFields ...st
 		switch want {
 		case HEX_NUMBER:
 			if have, ok := got.(string); ok {
-				_, err := hexutil.DecodeUint64(have)
+				_, err := hexutil.DecodeBig(have)
 				if err != nil {
 					return err
 				}

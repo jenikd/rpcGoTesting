@@ -53,3 +53,13 @@ test_call:
     arguments: [1, "latest", [25,75]]
     result: {"baseFeePerGas":["0xf7cc115ce"],"gasUsedRatio":[0.99],"oldestBlock":"0x2bf","reward":[["0x3b79abd7","0x8ac53684"]]}
     ignore_fields: ["baseFeePerGas","gasUsedRatio","oldestBlock","reward"]
+
+  - test_name: "eth_gasPrice"
+    method_name: "eth_gasPrice"
+    arguments: []
+    result: "HEX_NUMBER"
+
+  - test_name: "eth_getAccount"
+    method_name: "eth_getAccount"
+    arguments: ["signer"]
+    result: "NOT_AVAILABLE" # TODO not implemented should return similar to {"codeHash":"0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470","storageRoot":"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421","balance":"0xba862b54effa","nonce":"0x23"}
