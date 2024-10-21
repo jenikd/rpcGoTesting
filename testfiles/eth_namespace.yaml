@@ -47,3 +47,9 @@ test_call:
     call_id: 1 # need signer and deployed contract
     arguments: [{"from":"signer","to":"contract.address", "data":"0x6057361d0000000000000000000000000000000000000000000000000000000000000007"}]
     result: "HEX_NUMBER"
+
+  - test_name: "eth_feeHistory"
+    method_name: "eth_feeHistory"
+    arguments: [1, "latest", [25,75]]
+    result: {"baseFeePerGas":["0xf7cc115ce"],"gasUsedRatio":[0.99],"oldestBlock":"0x2bf","reward":[["0x3b79abd7","0x8ac53684"]]}
+    ignore_fields: ["baseFeePerGas","gasUsedRatio","oldestBlock","reward"]
