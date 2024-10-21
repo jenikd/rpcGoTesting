@@ -3,7 +3,6 @@ package tools
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"reflect"
 
 	"github.com/wI2L/jsondiff"
@@ -63,7 +62,7 @@ func IsEqualJson(expected any, res any, logger *Logger, ignoreFields ...string) 
 
 	patch, err := jsondiff.CompareJSON(expectedJson, got)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to compare JSON: %s", err)
 	}
 	if len(patch.String()) == 0 {
 		return nil
