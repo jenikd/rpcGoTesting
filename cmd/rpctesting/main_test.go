@@ -171,6 +171,14 @@ func checkResult(expected any, got any, logger *tools.Logger, ignoreFields ...st
 			printInterface(got, logger, "got     :")
 			return err
 		}
+	case []interface{}:
+		for i := range expected.([]interface{}) {
+			if err := checkResult(expected.([]interface{})[i], got.([]interface{})[i], logger, ignoreFields...); err != nil {
+				printInterface(expected.([]interface{})[i], logger, "expected:")
+				printInterface(got.([]interface{})[i], logger, "got     :")
+				return err
+			}
+		}
 	default:
 		return fmt.Errorf("unsupported result type: %T", expected)
 	}
