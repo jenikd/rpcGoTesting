@@ -16,3 +16,13 @@ test_call:
   - test_name: "eth_blockNumber"
     method_name: "eth_blockNumber"
     result: "HEX_NUMBER"
+
+  # TODO create a contract which will return data for this call
+  - test_name: "eth_call"
+    method_name: "eth_call"
+    arguments: [{"timeout":"2m","tracer":"callTracer"},"latest"]
+    result: "0x"
+
+  - test_name: "eth_chainId"
+    method_name: "eth_chainId"
+    result: "HEX_NUMBER"
