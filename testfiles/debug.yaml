@@ -12,9 +12,8 @@ contract_call:
     arguments: [23]
 
 test_call:
-  - test_id: 1
+  - test_name: "Check debug_traceTransaction"
     call_id: 1
-    test_name: "Check debug_traceTransaction"
     method_name: debug_traceTransaction
     arguments: [tx.hash,{"timeout":"2m","tracer":"callTracer"}]
     result: {"type":"CALL","from":"0x239fa7623354ec26520de878b52f13fe84b06971","to":"0xbc06770f3d7f2f5913be24470dd5c399c43b6731","value":"0x0","gas":"0x79bf2c","gasUsed":"0x6d65","input":"0xf2e06b500000000000000000000000000000000000000000000000000000000000000017","output":"0x","calls":[{"type":"CALL","from":"0xbc06770f3d7f2f5913be24470dd5c399c43b6731","to":"0x84921017eeeadef55a4140cbefa0a888bb186fc1","value":"0x0","gas":"0x77c32a","gasUsed":"0x57e0","input":"0x6466414b0000000000000000000000000000000000000000000000000000000000000017","output":"0x"}]}
