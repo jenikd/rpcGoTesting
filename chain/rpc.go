@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"math/big"
 	"rpctesting/config"
-	t "rpctesting/types"
-	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -55,34 +53,6 @@ func ConvertArgumentsWithAbi(contractABI *abi.ABI, methodName string, arguments 
 		args[i] = arg
 	}
 	return args, nil
-}
-
-func ConvertArgumentsWithTXReceipt(arguments []interface{}, txCall *t.ExecutedCall) error {
-
-	for i, arg := range arguments {
-		switch v := arg.(type) {
-		case int:
-			fmt.Printf("Integer: %d\n", v)
-		case string:
-			switch {
-			case strings.Contains(arg.(string), "tx.hash"):
-				arguments[i] = txCall.TxReceipt.TxHash.String()
-			case strings.Contains(arg.(string), "contract.address"):
-				arguments[i] = txCall.ContractAddress.String()
-			case strings.Contains(arg.(string), "tx.blockNumber"):
-				arguments[i] = hexutil.EncodeBig(txCall.TxReceipt.BlockNumber)
-			default:
-			}
-		case bool:
-			fmt.Printf("Boolean: %t\n", v)
-
-		case map[string]interface{}, []interface{}:
-			// do nothing
-		default:
-			fmt.Printf("Unknown type: arg: %v type %T\n", arg, v)
-		}
-	}
-	return nil
 }
 
 func convertArgument(input string, argument interface{}) (arg interface{}, err error) {

@@ -105,7 +105,7 @@ func TestAllConfigs(t *testing.T) {
 						t.Fatalf("call id %d not found", testCall.CallID)
 					}
 
-					err := chain.ConvertArgumentsWithTXReceipt(testCall.Arguments, contractCalls[testCall.CallID])
+					err := config.ConvertArgumentsWithTXReceipt(testCall.Arguments, contractCalls[testCall.CallID])
 					if err != nil {
 						t.Fatalf("failed to convert arguments: %s", err)
 					}
