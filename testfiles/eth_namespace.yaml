@@ -1,0 +1,11 @@
+ignore: false
+
+deploy:
+
+contract_call:
+
+test_call:
+  - test_name: "eth_accounts"
+    method_name: "eth_accounts"
+
+  
