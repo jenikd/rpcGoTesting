@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"reflect"
 	"rpctesting/chain"
 	"rpctesting/config"
 	"rpctesting/tools"
@@ -132,6 +133,7 @@ const (
 	NOT_AVAILABLE ResultType = "NOT_AVAILABLE"
 	HEX_NUMBER    ResultType = "HEX_NUMBER"
 	ARRAY         ResultType = "ARRAY"
+	HEX_BYTES     ResultType = "HEX_BYTES"
 )
 
 func newResultType(s string) ResultType {
@@ -142,6 +144,12 @@ func checkResult(expected any, got any, logger *tools.Logger, ignoreFields ...st
 
 	if expected == nil {
 		return nil
+	}
+
+	if _, ok := expected.(string); !ok {
+		if reflect.TypeOf(expected).Kind() != reflect.TypeOf(got).Kind() {
+			return fmt.Errorf("differet type of expected result, want: %s, got: %s", reflect.TypeOf(expected).Kind(), reflect.TypeOf(got).Kind())
+		}
 	}
 
 	switch expected.(type) {
@@ -164,6 +172,21 @@ func checkResult(expected any, got any, logger *tools.Logger, ignoreFields ...st
 			} else {
 				return fmt.Errorf("result is not an array with value")
 			}
+		case HEX_BYTES:
+			if have, ok := got.(string); ok {
+				_, err := hexutil.Decode(have)
+				if err != nil {
+					return err
+				}
+				if len(have) == 0 {
+					return fmt.Errorf("result is an empty hex bytes")
+				}
+				return nil
+			} else {
+				return fmt.Errorf("result is not a hex bytes")
+			}
+		case NOT_AVAILABLE:
+			return fmt.Errorf("result is not available")
 		}
 	case map[string]interface{}:
 		if err := tools.IsEqualJson(expected, got, logger, ignoreFields...); err != nil {
