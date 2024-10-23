@@ -123,3 +123,13 @@ test_call:
     call_id: 1 # need contract address from a call
     arguments: [{"fromBlock": "tx.blockNumber", "toBlock": "latest", "address": "contract.address","topics": []}]
     result: "HEX_BYTES"
+
+  - test_name: "eth_newBlockFilter"
+    method_name: "eth_newBlockFilter"
+    arguments: []
+    result: "HEX_BYTES"
+
+  - test_name: "eth_newPendingTransactionFilter"
+    method_name: "eth_newPendingTransactionFilter"
+    arguments: []
+    result: "HEX_BYTES"
