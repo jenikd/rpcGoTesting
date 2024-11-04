@@ -20,7 +20,7 @@ test_call:
 
   - test_name: "eth_blobBaseFee"
     method_name: "eth_blobBaseFee"
-    result: "NOT_AVAILABLE" # TODO not implemented
+    result: "0x1"
 
   - test_name: "eth_blockNumber"
     method_name: "eth_blockNumber"
