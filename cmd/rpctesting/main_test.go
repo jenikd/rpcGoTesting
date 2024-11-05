@@ -176,14 +176,14 @@ func checkResult(expected any, got any, logger *tools.Logger, ignoreFields ...st
 			if have, ok := got.(string); ok {
 				_, err := hexutil.Decode(have)
 				if err != nil {
-					return err
+					return fmt.Errorf("failed to decode hex bytes: %s, got: %s", err, got)
 				}
 				if len(have) == 0 {
-					return fmt.Errorf("result is an empty hex bytes")
+					return fmt.Errorf("result is an empty hex bytes, got: %s", got)
 				}
 				return nil
 			} else {
-				return fmt.Errorf("result is not a hex bytes")
+				return fmt.Errorf("result is not a hex bytes, got: %v", got)
 			}
 		case NOT_AVAILABLE:
 			return fmt.Errorf("result is not available")
