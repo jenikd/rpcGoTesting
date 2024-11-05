@@ -16,6 +16,25 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
+func GetSignerClient(ctx context.Context) (*ethclient.Client, *bind.TransactOpts, error) {
+	clientConfig, err := config.GetClientConfig()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get client config: %s", err)
+	}
+
+	client, err := GetClient(clientConfig.ProviderUrl)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get ethClient: %s", err)
+	}
+
+	signer, err := GetSigner(ctx, clientConfig, client.Client())
+	if err != nil {
+		client.Close()
+		return nil, nil, fmt.Errorf("failed to get signer: %s", err)
+	}
+	return client, signer, nil
+}
+
 func GetSigner(ctx context.Context, clientConfig *config.ClientConfig, client *rpc.Client) (*bind.TransactOpts, error) {
 	privateKey, err := getPrivateKey(clientConfig.Pk)
 	if err != nil {

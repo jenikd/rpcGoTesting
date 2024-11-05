@@ -2,11 +2,9 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
-	"reflect"
 	"rpctesting/chain"
 	"rpctesting/config"
 	"rpctesting/tools"
@@ -15,7 +13,6 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"gopkg.in/yaml.v3"
 )
@@ -52,26 +49,15 @@ func TestAllConfigs(t *testing.T) {
 
 	logger.Debugln("Loading configuration...")
 
-	testConfigFiles, err := config.LoadAllConfigs(*testDir)
+	client, signer, err := chain.GetSignerClient(ctx)
 	if err != nil {
-		t.Fatalf("Failed to load test configs: %s\n", err)
-	}
-
-	clientConfig, err := config.GetClientConfig()
-	if err != nil {
-		t.Fatalf("Failed to get client config: %s\n", err)
-	}
-
-	client, err := chain.GetClient(clientConfig.ProviderUrl)
-	if err != nil {
-		t.Fatalf("Failed to get ethClient: %s", err)
+		t.Fatalf("Failed to get client: %s\n", err)
 	}
 	defer client.Close()
 
-	signer, err := chain.GetSigner(ctx, clientConfig, client.Client())
+	testConfigFiles, err := config.LoadAllConfigs(*testDir)
 	if err != nil {
-		t.Fatalf("Failed to get signer: %s", err)
-		return
+		t.Fatalf("Failed to load test configs: %s\n", err)
 	}
 
 	// For all test files
@@ -113,106 +99,18 @@ func TestAllConfigs(t *testing.T) {
 
 				res, err := chain.MakeSimpleCall(ctx, client, testCall.MethodName, testCall.Arguments)
 				if err != nil {
-					if want, ok := testCall.Result.(string); ok && newResultType(want) == NOT_AVAILABLE {
+					if want, ok := testCall.Result.(string); ok && tools.NewResultType(want) == tools.NOT_AVAILABLE {
 						return
 					}
 					t.Fatalf("failed to call method : %s", err)
 				}
 
-				if err = checkResult(testCall.Result, res, logger, testCall.IgnoreFields...); err != nil {
+				if err = tools.CheckResult(testCall.Result, res, logger, testCall.IgnoreFields...); err != nil {
 					t.Fatalf("failed to check result: %s", err)
 				}
 			})
 		}
 	}
-}
-
-type ResultType string
-
-const (
-	NOT_AVAILABLE ResultType = "NOT_AVAILABLE"
-	HEX_NUMBER    ResultType = "HEX_NUMBER"
-	ARRAY         ResultType = "ARRAY"
-	HEX_BYTES     ResultType = "HEX_BYTES"
-)
-
-func newResultType(s string) ResultType {
-	return ResultType(s)
-}
-
-func checkResult(expected any, got any, logger *tools.Logger, ignoreFields ...string) error {
-
-	if expected == nil {
-		return nil
-	}
-
-	if _, ok := expected.(string); !ok {
-		if reflect.TypeOf(expected).Kind() != reflect.TypeOf(got).Kind() {
-			return fmt.Errorf("differet type of expected result, want: %s, got: %s", reflect.TypeOf(expected).Kind(), reflect.TypeOf(got).Kind())
-		}
-	}
-
-	switch expected.(type) {
-	case string:
-		want := newResultType(expected.(string))
-		switch want {
-		case HEX_NUMBER:
-			if have, ok := got.(string); ok {
-				_, err := hexutil.DecodeBig(have)
-				if err != nil {
-					return err
-				}
-				return nil
-			} else {
-				return fmt.Errorf("result is not a hex number")
-			}
-		case ARRAY:
-			if have, ok := got.([]any); ok && len(have) > 0 {
-				return nil
-			} else {
-				return fmt.Errorf("result is not an array with value")
-			}
-		case HEX_BYTES:
-			if have, ok := got.(string); ok {
-				_, err := hexutil.Decode(have)
-				if err != nil {
-					return fmt.Errorf("failed to decode hex bytes: %s, got: %s", err, got)
-				}
-				if len(have) == 0 {
-					return fmt.Errorf("result is an empty hex bytes, got: %s", got)
-				}
-				return nil
-			} else {
-				return fmt.Errorf("result is not a hex bytes, got: %v", got)
-			}
-		case NOT_AVAILABLE:
-			return fmt.Errorf("result is not available")
-		}
-	case map[string]interface{}:
-		if err := tools.IsEqualJson(expected, got, logger, ignoreFields...); err != nil {
-			printInterface(expected, logger, "expected:")
-			printInterface(got, logger, "got     :")
-			return err
-		}
-	case []interface{}:
-		for i := range expected.([]interface{}) {
-			if err := checkResult(expected.([]interface{})[i], got.([]interface{})[i], logger, ignoreFields...); err != nil {
-				return err
-			}
-		}
-	default:
-		return fmt.Errorf("unsupported result type: %T", expected)
-	}
-
-	return nil
-}
-
-func printInterface(obj interface{}, logger *tools.Logger, v ...interface{}) {
-	r, err := json.MarshalIndent(obj, "", "  ")
-	if err != nil {
-		logger.Fatalf("failed to marshal object: %s", err)
-	}
-	logger.Println(v, ":", string(r))
 }
 
 func prepareTestData(ctx context.Context, client *ethclient.Client, signer *bind.TransactOpts, test types.TestConfig) (map[int]*types.DeployedContract, map[int]*types.ExecutedCall, error) {
