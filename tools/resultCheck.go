@@ -67,7 +67,7 @@ func CheckResult(expected any, got any, logger *Logger, ignoreFields ...string) 
 				return fmt.Errorf("result is not a hex bytes, got: %v", got)
 			}
 		case NOT_AVAILABLE:
-			return fmt.Errorf("result is not available")
+			return fmt.Errorf("result should not be available, got: %v", got)
 		}
 	case map[string]interface{}:
 		if err := IsEqualJson(expected, got, logger, ignoreFields...); err != nil {
