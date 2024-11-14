@@ -120,7 +120,7 @@ test_call:
     method_name: "eth_newFilter"
     call_id: 1 # need contract address from a call
     arguments: [{"fromBlock": "tx.blockNumber", "toBlock": "latest", "address": "contract.address","topics": []}]
-    result: "HEX_BYTES"
+    result: "STRING"
 
   - test_name: "eth_newBlockFilter"
     method_name: "eth_newBlockFilter"
@@ -130,7 +130,7 @@ test_call:
   - test_name: "eth_newPendingTransactionFilter"
     method_name: "eth_newPendingTransactionFilter"
     arguments: []
-    result: "HEX_BYTES"
+    result: "STRING"
 
   - test_name: "eth_getLogs"
     method_name: "eth_getLogs"
