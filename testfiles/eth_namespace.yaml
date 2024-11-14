@@ -125,7 +125,7 @@ test_call:
   - test_name: "eth_newBlockFilter"
     method_name: "eth_newBlockFilter"
     arguments: []
-    result: "HEX_BYTES"
+    result: "STRING"
 
   - test_name: "eth_newPendingTransactionFilter"
     method_name: "eth_newPendingTransactionFilter"
