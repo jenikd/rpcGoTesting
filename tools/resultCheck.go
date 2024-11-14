@@ -15,6 +15,7 @@ const (
 	HEX_NUMBER    ResultType = "HEX_NUMBER"
 	ARRAY         ResultType = "ARRAY"
 	HEX_BYTES     ResultType = "HEX_BYTES"
+	STRING        ResultType = "STRING"
 )
 
 func NewResultType(s string) ResultType {
@@ -65,6 +66,15 @@ func CheckResult(expected any, got any, logger *Logger, ignoreFields ...string) 
 				return nil
 			} else {
 				return fmt.Errorf("result is not a hex bytes, got: %v", got)
+			}
+		case STRING:
+			if have, ok := got.(string); ok {
+				if len(have) == 0 {
+					return fmt.Errorf("result is an empty string, got: %s", got)
+				}
+				return nil
+			} else {
+				return fmt.Errorf("result is not a string, got: %v", got)
 			}
 		case NOT_AVAILABLE:
 			return fmt.Errorf("result should not be available, got: %v", got)
