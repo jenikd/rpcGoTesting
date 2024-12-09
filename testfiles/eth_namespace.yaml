@@ -159,3 +159,10 @@ test_call:
     arguments: ["tx.blockHash", "0x0"]
     result: {"blobVersionedHashes":null,"blockHash":"0xb9747dde011946a17e10ba5d7c09169bc6b6d2079b7cc0133cb5bff3965cbc7f","blockNumber":"0x838","from":"0x239fa7623354ec26520de878b52f13fe84b06971","gas":"0xaf49","gasPrice":"0x4190ab00","hash":"0x43ab73738cfe26d32c7778cfb1523b2606d673871d13beb2ca5595e28b1623ff","input":"0x6057361d0000000000000000000000000000000000000000000000000000000000000006","maxFeePerBlobGas":null,"nonce":"0x41","r":"0x3b80be69fd4ab45be4ee34f4c61c81047f2cf15fd0e1be65582edf1bb20d13fb","s":"0x7b64a880fd2a5c99e8701a01dc1e005713c28b47ffe9c7eb04ad6ecbe255e421","to":"0x2c595d2266bf0fe4a7e9f4c0b785f2eaab952207","transactionIndex":"0x0","type":"0x0","v":"0x1f69","value":"0x0"}
     ignore_fields: ["from","to","blockNumber","nonce","blockHash","hash","r","s","v"]
+
+  - test_name: "eth_getTransactionByBlockNumberAndIndex"
+    method_name: "eth_getTransactionByBlockNumberAndIndex"
+    call_id: 1 # need signer from a call
+    arguments: ["tx.blockNumber", "0x0"]
+    result: {"blobVersionedHashes":null,"blockHash":"0xb9747dde011946a17e10ba5d7c09169bc6b6d2079b7cc0133cb5bff3965cbc7f","blockNumber":"0x838","from":"0x239fa7623354ec26520de878b52f13fe84b06971","gas":"0xaf49","gasPrice":"0x4190ab00","hash":"0x43ab73738cfe26d32c7778cfb1523b2606d673871d13beb2ca5595e28b1623ff","input":"0x6057361d0000000000000000000000000000000000000000000000000000000000000006","maxFeePerBlobGas":null,"nonce":"0x41","r":"0x3b80be69fd4ab45be4ee34f4c61c81047f2cf15fd0e1be65582edf1bb20d13fb","s":"0x7b64a880fd2a5c99e8701a01dc1e005713c28b47ffe9c7eb04ad6ecbe255e421","to":"0x2c595d2266bf0fe4a7e9f4c0b785f2eaab952207","transactionIndex":"0x0","type":"0x0","v":"0x1f69","value":"0x0"}
+    ignore_fields: ["from","to","blockNumber","nonce","blockHash","hash","r","s","v"]
