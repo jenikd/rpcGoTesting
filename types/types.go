@@ -54,6 +54,7 @@ type ExecutedCall struct {
 	ContractAddress common.Address
 	TxReceipt       *types.Receipt
 	From            common.Address
+	Nonce           uint64
 }
 
 type TestResult struct {

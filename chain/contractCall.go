@@ -61,10 +61,16 @@ func makeContractCall(ctx context.Context, client *ethclient.Client, call *t.Cal
 		return nil, fmt.Errorf("failed to call contract address: %s", err)
 	}
 
+	nonce, err := client.NonceAt(ctx, signer.From, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get nonce: %s", err)
+	}
+
 	return &t.ExecutedCall{
 		CallID:          call.CallID,
 		ContractAddress: contract.Address,
 		TxReceipt:       txReceipt,
 		From:            signer.From,
+		Nonce:           nonce,
 	}, nil
 }

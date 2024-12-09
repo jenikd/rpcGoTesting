@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"rpctesting/types"
+	"strconv"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -12,6 +13,7 @@ type Placeholder string
 
 const (
 	SIGNER           Placeholder = "signer"
+	NONCE            Placeholder = "nonce"
 	TX_HASH          Placeholder = "tx.hash"
 	CONTRACT_ADDRESS Placeholder = "contract.address"
 	TX_BLOCK_NUMBER  Placeholder = "tx.blocknumber"
@@ -73,6 +75,8 @@ func replacePlaceholder(str string, txCall *types.ExecutedCall) string {
 	switch NewPlaceholder(str) {
 	case SIGNER:
 		return txCall.From.String()
+	case NONCE:
+		return "0x" + strconv.FormatUint(txCall.Nonce, 16)
 	case CONTRACT_ADDRESS:
 		return txCall.ContractAddress.String()
 	case TX_HASH:
