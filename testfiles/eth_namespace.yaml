@@ -62,7 +62,8 @@ test_call:
     method_name: "eth_getAccount"
     call_id: 1 # need signer from a call
     arguments: ["signer", "latest"]
-    result: "NOT_AVAILABLE" # TODO not implemented should return similar to {"codeHash":"0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470","storageRoot":"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421","balance":"0xba862b54effa","nonce":"0x23"}
+    result: {"codeHash":"0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470","storageRoot":"0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421","balance":"0xba862b54effa","nonce":"0x23"}
+    ignore_fields: ["balance","nonce"]
 
   - test_name: "eth_getBalance"
     method_name: "eth_getBalance"
