@@ -234,3 +234,8 @@ test_call:
     method_name: "eth_unsubscribe"
     arguments: []
     result: "NOT_AVAILABLE" # working with WebSockets
+
+  - test_name: "eth_syncing"
+    method_name: "eth_syncing"
+    arguments: []
+    result: "BOOLEAN"
