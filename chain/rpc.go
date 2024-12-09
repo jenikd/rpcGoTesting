@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/big"
 	"rpctesting/config"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -25,6 +26,12 @@ func GetSignerClient(ctx context.Context) (*ethclient.Client, *bind.TransactOpts
 	client, err := GetClient(clientConfig.ProviderUrl)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get ethClient: %s", err)
+	}
+
+	err = checkConnection(client)
+	if err != nil {
+		client.Close()
+		return nil, nil, fmt.Errorf("failed to connect to RPC: %s", err)
 	}
 
 	signer, err := GetSigner(ctx, clientConfig, client.Client())
@@ -142,4 +149,26 @@ func getGasPrice(ctx context.Context, client *rpc.Client) (*big.Int, error) {
 		return nil, err
 	}
 	return hexutil.DecodeBig(result)
+}
+
+func checkConnection(client *ethclient.Client) error {
+	const timeout = 300 * time.Second
+	start := time.Now()
+
+	// wait for the node to be ready to serve requests
+	const maxDelay = 100 * time.Millisecond
+	delay := time.Millisecond
+	for time.Since(start) < timeout {
+		_, err := client.ChainID(context.Background())
+		if err != nil {
+			time.Sleep(delay)
+			delay = 2 * delay
+			if delay > maxDelay {
+				delay = maxDelay
+			}
+			continue
+		}
+		return nil
+	}
+	return fmt.Errorf("node not ready after %s", timeout)
 }
