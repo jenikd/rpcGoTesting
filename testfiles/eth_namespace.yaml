@@ -224,3 +224,13 @@ test_call:
     method_name: "eth_submitWork"
     arguments: []
     result: "NOT_AVAILABLE" # Used for submitting a proof-of-work solution
+
+  - test_name: "eth_subscribe"
+    method_name: "eth_subscribe"
+    arguments: []
+    result: "NOT_AVAILABLE" # working with WebSockets
+
+  - test_name: "eth_unsubscribe"
+    method_name: "eth_unsubscribe"
+    arguments: []
+    result: "NOT_AVAILABLE" # working with WebSockets
