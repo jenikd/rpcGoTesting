@@ -198,3 +198,9 @@ test_call:
     call_id: 1
     arguments: ["tx.blockNumber"]
     result: "HEX_NUMBER"
+
+  - test_name: "eth_hashrate"
+    method_name: "eth_hashrate"
+    call_id: 1
+    arguments: []
+    result: "HEX_NUMBER"
