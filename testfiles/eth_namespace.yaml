@@ -214,3 +214,13 @@ test_call:
     call_id: 1
     arguments: [ {"from":"signer","to":"contract.address","value":"0x186a0","data":"0x6057361d0000000000000000000000000000000000000000000000000000000000000007","gas":"0x2e64cec1","gasPrice":"0x77359400","nonce":"nonce"} ]
     result: "HEX_STRING"
+
+  - test_name: "eth_simulateV1"
+    method_name: "eth_simulateV1"
+    arguments: []
+    result: "NOT_AVAILABLE" # TODO added November 8th 2024 to quicknode
+    
+  - test_name: "eth_submitWork"
+    method_name: "eth_submitWork"
+    arguments: []
+    result: "NOT_AVAILABLE" # Used for submitting a proof-of-work solution
