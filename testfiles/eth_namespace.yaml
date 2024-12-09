@@ -204,3 +204,9 @@ test_call:
     call_id: 1
     arguments: []
     result: "HEX_NUMBER"
+
+  - test_name: "eth_maxPriorityFeePerGas"
+    method_name: "eth_maxPriorityFeePerGas"
+    call_id: 1
+    arguments: []
+    result: "STRING"
