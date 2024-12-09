@@ -192,3 +192,9 @@ test_call:
     call_id: 1
     arguments: ["tx.blockHash"]
     result: "HEX_NUMBER"
+
+  - test_name: "eth_getUncleCountByBlockNumber"
+    method_name: "eth_getUncleCountByBlockNumber"
+    call_id: 1
+    arguments: ["tx.blockNumber"]
+    result: "HEX_NUMBER"
