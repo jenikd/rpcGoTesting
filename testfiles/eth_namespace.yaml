@@ -133,6 +133,11 @@ test_call:
     arguments: []
     result: "STRING"
 
+  - test_name: "eth_uninstallFilter"
+    method_name: "eth_uninstallFilter"
+    arguments: ["0x10ff0bfba9472c87932c56632eef8f5cc70910e8e71d"]
+    result: "BOOLEAN"
+
   - test_name: "eth_getLogs"
     method_name: "eth_getLogs"
     call_id: 1 # need contract address from a call
