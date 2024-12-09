@@ -244,3 +244,8 @@ test_call:
     method_name: "eth_syncing"
     arguments: []
     result: "BOOLEAN"
+
+  - test_name: "eth_sendRawTransaction"
+    method_name: "eth_sendRawTransaction"
+    arguments: ["0x6057361d0000000000000000000000000000000000000000000000000000000000000007"]
+    result: "ERROR"

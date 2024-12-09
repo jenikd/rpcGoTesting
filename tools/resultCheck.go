@@ -16,6 +16,7 @@ const (
 	ARRAY         ResultType = "ARRAY"
 	HEX_BYTES     ResultType = "HEX_BYTES"
 	STRING        ResultType = "STRING"
+	ERROR         ResultType = "ERROR"
 )
 
 func NewResultType(s string) ResultType {

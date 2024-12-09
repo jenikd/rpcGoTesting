@@ -99,9 +99,11 @@ func TestAllConfigs(t *testing.T) {
 
 				res, err := chain.MakeSimpleCall(ctx, client, testCall.MethodName, testCall.Arguments)
 				if err != nil {
-					if want, ok := testCall.Result.(string); ok && tools.NewResultType(want) == tools.NOT_AVAILABLE {
+					if want, ok := testCall.Result.(string); ok &&
+						(tools.NewResultType(want) == tools.NOT_AVAILABLE || tools.NewResultType(want) == tools.ERROR) {
 						return
 					}
+
 					t.Fatalf("failed to call method : %s", err)
 				}
 
