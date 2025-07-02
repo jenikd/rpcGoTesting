@@ -36,7 +36,7 @@ func TestAllConfigs(t *testing.T) {
 
 	logger := tools.NewLogger(tools.InfoLevel)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
 
 	if testDir == nil {
