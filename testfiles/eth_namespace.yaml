@@ -50,8 +50,8 @@ test_call:
   - test_name: "eth_feeHistory"
     method_name: "eth_feeHistory"
     arguments: [1, "latest", [25,75]]
-    result: {"baseFeePerGas":["0xf7cc115ce"],"gasUsedRatio":[0.99],"oldestBlock":"0x2bf","reward":[["0x3b79abd7","0x8ac53684"]]}
-    ignore_fields: ["baseFeePerGas","gasUsedRatio","oldestBlock","reward"]
+    result: {"baseFeePerGas":["0xf7cc115ce"],"baseFeePerBlobGas":["0x1","0x1"],"gasUsedRatio":[0.99],"blobGasUsedRatio":[0],"oldestBlock":"0x2bf","reward":[["0x3b79abd7","0x8ac53684"]]}
+    ignore_fields: ["baseFeePerGas","baseFeePerBlobGas","gasUsedRatio","blobGasUsedRatio","oldestBlock","reward"]
 
   - test_name: "eth_gasPrice"
     method_name: "eth_gasPrice"
